@@ -78,6 +78,8 @@ module WaterType
   use Wateratm2lndBulkType     , only : wateratm2lndbulk_type
   use WaterTracerContainerType , only : water_tracer_container_type
   use WaterTracerUtils         , only : CompareBulkToTracer, SetTracerToBulkTimesRatio
+  ! Cathy [dev.01]
+  use UrbanParamsType          , only : IsProgBuildTemp
 
   implicit none
   private
@@ -385,7 +387,8 @@ contains
 
        call this%bulk_and_tracers(i)%waterdiagnostic_inst%Init(bounds, &
             this%bulk_and_tracers(i)%info, &
-            this%bulk_and_tracers(i)%vars)
+            this%bulk_and_tracers(i)%vars, &
+            IsProgBuildTemp()) ! Cathy [dev.01]
 
        call this%bulk_and_tracers(i)%waterbalance_inst%Init(bounds, &
             this%bulk_and_tracers(i)%info, &
@@ -767,7 +770,8 @@ contains
             t_soisno_col=t_soisno_col(bounds%begc:, -nlevsno+1:), &
             altmax_lastyear_indx=altmax_lastyear_indx(bounds%begc:))
 
-       call this%bulk_and_tracers(i)%waterdiagnostic_inst%Restart(bounds, ncid, flag=flag)
+       call this%bulk_and_tracers(i)%waterdiagnostic_inst%Restart(bounds, ncid, flag=flag, &
+            IsProgBuildTemp()) ! Cathy [dev.04]
 
     end do
 
