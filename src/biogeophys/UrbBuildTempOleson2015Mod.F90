@@ -16,6 +16,8 @@ module UrbBuildTempOleson2015Mod
   use UrbanTimeVarType  , only : urbantv_type  
   use EnergyFluxType    , only : energyflux_type
   use TemperatureType   , only : temperature_type
+  ! Cathy [dev.02]
+  use WaterDiagnosticType, only : waterdiagnostic_type
   use LandunitType      , only : lun                
   use ColumnType        , only : col                
   !
@@ -42,7 +44,7 @@ contains
 ! !INTERFACE:
   subroutine BuildingTemperature (bounds, num_urbanl, filter_urbanl, num_nolakec, &
                                   filter_nolakec, tk, urbanparams_inst, temperature_inst, &
-                                  energyflux_inst, urbantv_inst)
+                                  energyflux_inst, waterdiagnostic_inst, urbantv_inst) ! Cathy [dev.02]
 !
 ! !DESCRIPTION:
 ! Solve for t_building, inner surface temperatures of roof, sunw, shdw, and floor temperature
@@ -205,7 +207,9 @@ contains
     use clm_varcon      , only : rair, pstd, cpair, sb, hcv_roof, hcv_roof_enhanced, &
                                  hcv_floor, hcv_floor_enhanced, hcv_sunw, hcv_shdw, &
                                  em_roof_int, em_floor_int, em_sunw_int, em_shdw_int, &
-                                 dz_floor, dens_floor, cp_floor, vent_ach
+                                 dz_floor, dens_floor, cp_floor, vent_ach, &
+                                 ! Cathy [dev.02]
+                                 q_building_max, hvap
     use column_varcon   , only : icol_roof, icol_sunwall, icol_shadewall
     use clm_varctl      , only : iulog
     use abortutils      , only : endrun
@@ -223,6 +227,8 @@ contains
     type(urbanparams_type), intent(in)    :: urbanparams_inst ! urban parameters
     type(temperature_type), intent(inout) :: temperature_inst ! temperature variables
     type(energyflux_type) , intent(inout) :: energyflux_inst  ! energy flux variables
+    ! Cathy [dev.02]
+    type(waterdiagnostic_type), intent(inout) :: waterdiagnostic_inst ! water diagnostic variables
     type(urbantv_type)    , intent(in)    :: urbantv_inst     ! urban time varying variables
 !
 ! !LOCAL VARIABLES:
@@ -236,6 +242,9 @@ contains
     real(r8) :: t_floor_bef(bounds%begl:bounds%endl)       ! floor temperature at previous time step (K)              
     real(r8) :: t_building_bef(bounds%begl:bounds%endl)    ! internal building air temperature at previous time step [K]
     real(r8) :: t_building_bef_hac(bounds%begl:bounds%endl)! internal building air temperature before applying HAC [K]
+    ! Cathy [dev.02]
+    real(r8) :: q_building_bef(bounds%begl:bounds%endl)    ! internal building air specific humidity at previous time step (kg/kg)
+    real(r8) :: q_building_bef_hac(bounds%begl:bounds%endl)! internal building air specific humidity before applying HAC (kg/kg)
     real(r8) :: eflx_urban_ac_sat(bounds%begl:bounds%endl) ! urban air conditioning flux under AC adoption saturation (W/m**2)
     real(r8) :: hcv_roofi(bounds%begl:bounds%endl)         ! roof convective heat transfer coefficient (W m-2 K-1)
     real(r8) :: hcv_sunwi(bounds%begl:bounds%endl)         ! sunwall convective heat transfer coefficient (W m-2 K-1)
@@ -328,6 +337,10 @@ contains
     p_ac              => urbantv_inst%p_ac                 , & ! Input:  [real(r8) (:)]  air-conditioning penetration rate (a fraction between 0 and 1)
     t_building_max    => urbantv_inst%t_building_max       , & ! Input:  [real(r8) (:)]  maximum internal building air temperature (K)
     t_building_min    => urbanparams_inst%t_building_min   , & ! Input:  [real(r8) (:)]  minimum internal building air temperature (K)
+
+    ! Cathy [dev.02]
+    qaf               => waterdiagnostic_inst%qaf_lun      , & ! Input:  [real(r8) (:)]  urban canopy air specific humidity (kg/kg)
+    q_building        => waterdiagnostic_inst%q_building_lun,& ! InOut:  [real(r8) (:)]  internal building air specific humidity (kg/kg)
 
     eflx_building     => energyflux_inst%eflx_building_lun , & ! Output:  [real(r8) (:)]  building heat flux from change in interior building air temperature (W/m**2)
     eflx_urban_ac     => energyflux_inst%eflx_urban_ac_lun , & ! Output:  [real(r8) (:)]  urban air conditioning flux (W/m**2)
@@ -903,13 +916,18 @@ contains
            call endrun(subgrid_index=l, subgrid_level=subgrid_level_landunit)
          end if
 
+         ! Cathy [dev.02]
          ! Sensible heat flux from ventilation. It is added as a flux to the canyon floor in SoilTemperatureMod.
          ! Note that we multiply it here by wtlunit_roof which converts it from W/m2 of building area to W/m2
          ! of urban area. eflx_urban_ac and eflx_urban_heat are treated similarly below. This flux is balanced
          ! by an equal and opposite flux into/out of the building and so has a net effect of zero on the energy balance
          ! of the urban landunit.
-         eflx_ventilation(l) = wtlunit_roof(l) * ( - ht_roof(l)*(vent_ach/3600._r8) &
-                               * rho_dair(l) * cpair * (taf(l) - t_building(l)) )
+         ! eflx_ventilation(l) = wtlunit_roof(l) * ( - ht_roof(l)*(vent_ach/3600._r8) &
+         !                       * rho_dair(l) * cpair * (taf(l) - t_building(l)) )
+         eflx_ventilation(l) = wtlunit_roof(l) * ( &
+                               - ht_roof(l) * (ven_ach/3600._r8) * rho_dair(l) * cpair * (taf(l) - t_building(l)) &
+                               - ht_roof(l) * (ven_ach/3600._r8) * rho_dair(l) * hvap * (qaf(l) - q_building(l)) &
+                               )
        end if
     end do
 
@@ -950,7 +968,12 @@ contains
             eflx_urban_ac(l) = 0._r8
             eflx_urban_heat(l) = 0._r8
           end if
-          eflx_building(l) = wtlunit_roof(l) * (ht_roof(l) * rho_dair(l)*cpair/dtime) * (t_building(l) - t_building_bef(l))
+          ! Cathy [dev.02]
+          ! eflx_building(l) = wtlunit_roof(l) * (ht_roof(l) * rho_dair(l)*cpair/dtime) * (t_building(l) - t_building_bef(l))
+          eflx_building(l) = wtlunit_roof(l) * ( &
+                             (ht_roof(l) * rho_dair(l)*cpair/dtime) * (t_building(l) - t_building_bef(l)) &
+                             + (ht_roof(l) * rho_dair(l)*hvap/dtime) * (q_building(l) - q_building_bef(l)) &
+                             )
        end if
     end do
 
