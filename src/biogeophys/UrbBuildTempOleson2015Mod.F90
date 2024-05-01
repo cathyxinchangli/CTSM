@@ -977,6 +977,8 @@ contains
               eflx_urban_heat(l) = wtlunit_roof(l) * abs( (ht_roof(l) * rho_dair(l) * cpair / dtime) * t_building(l) &
                                    - (ht_roof(l) * rho_dair(l) * cpair / dtime) * t_building_bef_hac(l) )
             else
+              ! Cathy [dev.03]: need this because dehumidification below may reference it
+              eflx_urban_ac_sat(l) = 0._r8
               eflx_urban_ac(l) = 0._r8
               eflx_urban_heat(l) = 0._r8
             end if
