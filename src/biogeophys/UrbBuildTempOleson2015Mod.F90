@@ -245,7 +245,9 @@ contains
     ! Cathy [dev.02]
     real(r8) :: q_building_bef(bounds%begl:bounds%endl)    ! internal building air specific humidity at previous time step (kg/kg)
     real(r8) :: q_building_bef_hac(bounds%begl:bounds%endl)! internal building air specific humidity before applying HAC (kg/kg)
-    real(r8) :: eflx_urban_ac_sat(bounds%begl:bounds%endl) ! urban air conditioning flux under AC adoption saturation (W/m**2)
+    real(r8) :: eflx_urban_ac_sat(bounds%begl:bounds%endl) ! urban air conditioning heat flux under AC adoption saturation (W/m**2) ! Cathy [dev.03]
+    ! Cathy [dev.03]
+    real(r8) :: eflx_urban_ac_sat_lat(bounds%begl:bounds%endl) ! urban air conditioning latent heat flux under AC adoption saturation (W/m**2)
     real(r8) :: hcv_roofi(bounds%begl:bounds%endl)         ! roof convective heat transfer coefficient (W m-2 K-1)
     real(r8) :: hcv_sunwi(bounds%begl:bounds%endl)         ! sunwall convective heat transfer coefficient (W m-2 K-1)
     real(r8) :: hcv_shdwi(bounds%begl:bounds%endl)         ! shadewall convective heat transfer coefficient (W m-2 K-1)
@@ -367,6 +369,8 @@ contains
          t_shdw_inner_bef(l)  = t_shdw_inner(l)
          t_floor_bef(l)       = t_floor(l)
          t_building_bef(l)    = t_building(l)
+         ! Cathy [dev.03]
+         q_building_bef(l)    = q_building(l)
          if (t_roof_inner_bef(l) .le. t_building_bef(l)) then
            hcv_roofi(l) = hcv_roof_enhanced
          else
@@ -931,6 +935,15 @@ contains
        end if
     end do
 
+    ! Cathy [dev.03]
+    ! Update internal building air specific humidity
+    do fl = 1,num_urbanl
+       l = filter_urbanl(fl)
+       if (urbpoi(l)) then
+          q_building(l) = qaf(l) * (vent_ach/3600._r8 * dtime) + q_building_bef(l) * (1 - vent_ach/3600._r8 * dtime)
+       end if
+    end do
+
     ! Restrict internal building air temperature to between min and max
     ! Calculate heating or air conditioning flux from energy required to change
     ! internal building air temperature to t_building_min or t_building_max. 
@@ -940,8 +953,11 @@ contains
        if (urbpoi(l)) then
           if (trim(urban_hac) == urban_hac_on .or. trim(urban_hac) == urban_wasteheat_on) then
             t_building_bef_hac(l) = t_building(l)
+            ! Cathy [dev.03]
+            q_building_bef_hac(l) = q_building(l)
 !           rho_dair(l) = pstd / (rair*t_building(l))
-
+            
+            ! Sensible heat
             if (t_building_bef_hac(l) > t_building_max(l)) then
               if (urban_explicit_ac) then   ! use explicit ac adoption rate parameterization scheme:
                 ! Here, t_building_max is the AC saturation setpoint
@@ -964,6 +980,26 @@ contains
               eflx_urban_ac(l) = 0._r8
               eflx_urban_heat(l) = 0._r8
             end if
+
+            ! Cathy [dev.03]
+            ! Latent heat
+            ! Dehumidification process modifies eflx_urban_ac, and is only implemented for urban_explicit_ac = .true.;
+            ! the latent heat removed from internal building air is released to urban canyon as sensible heat.
+            ! Humidification process for urban heating is not implemented.
+            if (q_building_bef_hac(l) > q_building_max(l)) then
+              if (urban_explicit_ac) then   ! use explicit ac adoption rate parameterization scheme:
+                ! Here, q_building_max is the AC saturation humidity setpoint
+                eflx_urban_ac_sat_lat(l) = wtlunit_roof(l) * abs( &
+                                           (ht_roof(l) * rho_dair(l) * hvap / dtime) * q_building_max(l) &
+                                           - (ht_roof(l) * rho_dair(l) * hvap / dtime) * q_building_bef_hac(l) &
+                                           )
+                eflx_urban_ac_sat(l) = eflx_urban_ac_sat(l) + eflx_urban_ac_sat_lat(l)
+                q_building(l) = q_building_max(l) + ( 1._r8 - p_ac(l) ) * eflx_urban_ac_sat_lat(l) &
+                              * dtime / (ht_roof(l) * rho_dair(l) * hvap * wtlunit_roof(l))
+                eflx_urban_ac(l) = p_ac(l) * eflx_urban_ac_sat(l)
+              end if
+            end if
+
           else
             eflx_urban_ac(l) = 0._r8
             eflx_urban_heat(l) = 0._r8
