@@ -84,7 +84,7 @@ contains
 
     call this%InitAllocate(bounds, tracer_vars)
 
-    call this%InitHistory(bounds)
+    call this%InitHistory(bounds, is_prog_buildtemp)
 
     call this%InitCold(bounds, is_prog_buildtemp)
 
@@ -167,6 +167,8 @@ contains
     ! !LOCAL VARIABLES:
     integer           :: begp, endp
     integer           :: begc, endc
+    ! Cathy [dev.04]
+    integer           :: begl, endl
     integer           :: begg, endg
     !------------------------------------------------------------------------
 
@@ -263,6 +265,7 @@ contains
             avgflag='A', &
             long_name=this%info%lname('internal urban building air specific humidity'), &
             ptr_lunit=this%q_building_lun, l2g_scale_type='unity', set_nourb=spval)
+    end if
 
   end subroutine InitHistory
 
@@ -330,8 +333,10 @@ contains
     ! !USES:
     use clm_varcon       , only : nameg, namec
     use ncdio_pio        , only : file_desc_t, ncd_double
-    use clm_varctl       , only : use_fates_planthydro
+    use clm_varctl       , only : use_fates_planthydro, iulog ! Cathy [dev.04]
     use restUtilMod
+    ! Cathy [dev.04]
+    use spmdMod          , only : masterproc
     !
     ! !ARGUMENTS:
     class(waterdiagnostic_type), intent(in) :: this
@@ -381,7 +386,7 @@ contains
        call restartvar(ncid=ncid, flag=flag, &
             varname=this%info%fname('q_building'), &
             xtype=ncd_double, dim1name='landunit', &
-            long_name=this%info%lname('internal building air specific humidity)', &
+            long_name=this%info%lname('internal building air specific humidity'), &
             units='kg/kg', &
             interpinic_flag='interp', readvar=readvar, data=this%q_building_lun)
        if (flag=='read' .and. .not. readvar) then

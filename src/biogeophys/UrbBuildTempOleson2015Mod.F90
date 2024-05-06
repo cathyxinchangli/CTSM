@@ -988,15 +988,15 @@ contains
             ! Dehumidification process modifies eflx_urban_ac, and is only implemented for urban_explicit_ac = .true.;
             ! the latent heat removed from internal building air is released to urban canyon as sensible heat.
             ! Humidification process for urban heating is not implemented.
-            if (q_building_bef_hac(l) > q_building_max(l)) then
+            if (q_building_bef_hac(l) > q_building_max) then
               if (urban_explicit_ac) then   ! use explicit ac adoption rate parameterization scheme:
                 ! Here, q_building_max is the AC saturation humidity setpoint
                 eflx_urban_ac_sat_lat(l) = wtlunit_roof(l) * abs( &
-                                           (ht_roof(l) * rho_dair(l) * hvap / dtime) * q_building_max(l) &
+                                           (ht_roof(l) * rho_dair(l) * hvap / dtime) * q_building_max &
                                            - (ht_roof(l) * rho_dair(l) * hvap / dtime) * q_building_bef_hac(l) &
                                            )
                 eflx_urban_ac_sat(l) = eflx_urban_ac_sat(l) + eflx_urban_ac_sat_lat(l)
-                q_building(l) = q_building_max(l) + ( 1._r8 - p_ac(l) ) * eflx_urban_ac_sat_lat(l) &
+                q_building(l) = q_building_max + ( 1._r8 - p_ac(l) ) * eflx_urban_ac_sat_lat(l) &
                               * dtime / (ht_roof(l) * rho_dair(l) * hvap * wtlunit_roof(l))
                 eflx_urban_ac(l) = p_ac(l) * eflx_urban_ac_sat(l)
               end if
