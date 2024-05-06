@@ -28,6 +28,8 @@ module WaterDiagnosticBulkType
   use WaterStateType, only : waterstate_type
   use WaterStateBulkType, only : waterstatebulk_type
   use WaterFluxType, only : waterflux_type
+  ! Cathy [dev.04]
+  use UrbanParamsType, only : IsProgBuildTemp
   !
   implicit none
   save
@@ -154,7 +156,7 @@ contains
     real(r8)          , intent(in) :: h2osno_input_col(bounds%begc:)  ! Initial total snow water (mm H2O)
 
 
-    call this%Init(bounds, info, vars, is_prog_buildtemp)
+    call this%Init(bounds, info, vars, IsProgBuildTemp())
 
     call this%InitBulkAllocate(bounds) 
 
@@ -785,7 +787,7 @@ contains
   end subroutine InitBulkCold
 
   !------------------------------------------------------------------------
-  subroutine RestartBulk(this, bounds, ncid, flag, writing_finidat_interp_dest_file, waterstatebulk_inst)
+  subroutine RestartBulk(this, bounds, ncid, flag, writing_finidat_interp_dest_file, waterstatebulk_inst, is_prog_buildtemp)
     ! 
     ! !DESCRIPTION:
     ! Read/Write module information to/from restart file.
@@ -806,6 +808,8 @@ contains
     character(len=*) , intent(in)    :: flag   ! 'read' or 'write'
     logical, intent(in) :: writing_finidat_interp_dest_file ! true if we are writing a finidat_interp_dest file (ignored for flag=='read')
     type(waterstatebulk_type), intent(in) :: waterstatebulk_inst
+    ! Cathy [dev.04]
+    logical          , intent(in)    :: is_prog_buildtemp    ! Prognostic building temp is being used
     !
     ! !LOCAL VARIABLES:
     logical  :: readvar
@@ -813,7 +817,7 @@ contains
     !------------------------------------------------------------------------
 
 
-    call this%Restart(bounds, ncid, flag=flag, is_prog_buildtemp)
+    call this%Restart(bounds, ncid, flag=flag, is_prog_buildtemp=IsProgBuildTemp())
 
     if(use_luna)then
        call restartvar(ncid=ncid, flag=flag, &

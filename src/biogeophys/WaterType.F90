@@ -727,7 +727,7 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine Restart(this, bounds, ncid, flag, writing_finidat_interp_dest_file, &
-       watsat_col, t_soisno_col, altmax_lastyear_indx)
+       watsat_col, t_soisno_col, altmax_lastyear_indx, is_prog_buildtemp) ! Cathy [dev.04]
     !
     ! !DESCRIPTION:
     ! Read/write information to/from restart file for all water variables
@@ -741,6 +741,8 @@ contains
     real(r8)         , intent(in)    :: watsat_col (bounds%begc:, 1:)  ! volumetric soil water at saturation (porosity)
     real(r8)         , intent(in)    :: t_soisno_col(bounds%begc:, -nlevsno+1:) ! col soil temperature (Kelvin)
     integer          , intent(in)    :: altmax_lastyear_indx(bounds%begc:) !col active layer index last year
+    ! Cathy [dev.04]
+    logical          , intent(in)    :: is_prog_buildtemp    ! Prognostic building temp is being used
     !
     ! !LOCAL VARIABLES:
     integer :: i
@@ -750,7 +752,7 @@ contains
 
     SHR_ASSERT_ALL_FL((ubound(watsat_col, 1) == bounds%endc), sourcefile, __LINE__)
 
-    call this%waterfluxbulk_inst%restartBulk (bounds, ncid, flag=flag)
+    call this%waterfluxbulk_inst%restartBulk (bounds, ncid, flag=flag, is_prog_buildtemp=IsProgBuildTemp())
 
     call this%waterstatebulk_inst%restartBulk (bounds, ncid, flag=flag, &
          watsat_col=watsat_col(bounds%begc:bounds%endc,:), &
@@ -759,7 +761,9 @@ contains
 
     call this%waterdiagnosticbulk_inst%restartBulk (bounds, ncid, flag=flag, &
          writing_finidat_interp_dest_file=writing_finidat_interp_dest_file, &
-         waterstatebulk_inst = this%waterstatebulk_inst)
+         waterstatebulk_inst = this%waterstatebulk_inst, &
+         ! Cathy [dev.04]
+         is_prog_buildtemp = IsProgBuildTemp())
 
     do i = this%tracers_beg, this%tracers_end
 
@@ -771,7 +775,7 @@ contains
             altmax_lastyear_indx=altmax_lastyear_indx(bounds%begc:))
 
        call this%bulk_and_tracers(i)%waterdiagnostic_inst%Restart(bounds, ncid, flag=flag, &
-            IsProgBuildTemp()) ! Cathy [dev.04]
+            is_prog_buildtemp=IsProgBuildTemp()) ! Cathy [dev.04]
 
     end do
 
