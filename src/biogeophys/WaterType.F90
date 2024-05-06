@@ -761,9 +761,7 @@ contains
 
     call this%waterdiagnosticbulk_inst%restartBulk (bounds, ncid, flag=flag, &
          writing_finidat_interp_dest_file=writing_finidat_interp_dest_file, &
-         waterstatebulk_inst = this%waterstatebulk_inst, &
-         ! Cathy [dev.04]
-         is_prog_buildtemp = IsProgBuildTemp())
+         waterstatebulk_inst = this%waterstatebulk_inst)
 
     do i = this%tracers_beg, this%tracers_end
 

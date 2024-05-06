@@ -787,7 +787,7 @@ contains
   end subroutine InitBulkCold
 
   !------------------------------------------------------------------------
-  subroutine RestartBulk(this, bounds, ncid, flag, writing_finidat_interp_dest_file, waterstatebulk_inst, is_prog_buildtemp)
+  subroutine RestartBulk(this, bounds, ncid, flag, writing_finidat_interp_dest_file, waterstatebulk_inst)
     ! 
     ! !DESCRIPTION:
     ! Read/Write module information to/from restart file.
@@ -808,8 +808,6 @@ contains
     character(len=*) , intent(in)    :: flag   ! 'read' or 'write'
     logical, intent(in) :: writing_finidat_interp_dest_file ! true if we are writing a finidat_interp_dest file (ignored for flag=='read')
     type(waterstatebulk_type), intent(in) :: waterstatebulk_inst
-    ! Cathy [dev.04]
-    logical          , intent(in)    :: is_prog_buildtemp    ! Prognostic building temp is being used
     !
     ! !LOCAL VARIABLES:
     logical  :: readvar
