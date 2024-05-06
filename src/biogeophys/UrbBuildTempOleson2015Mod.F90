@@ -929,8 +929,8 @@ contains
          ! eflx_ventilation(l) = wtlunit_roof(l) * ( - ht_roof(l)*(vent_ach/3600._r8) &
          !                       * rho_dair(l) * cpair * (taf(l) - t_building(l)) )
          eflx_ventilation(l) = wtlunit_roof(l) * ( &
-                               - ht_roof(l) * (ven_ach/3600._r8) * rho_dair(l) * cpair * (taf(l) - t_building(l)) &
-                               - ht_roof(l) * (ven_ach/3600._r8) * rho_dair(l) * hvap * (qaf(l) - q_building(l)) &
+                               - ht_roof(l) * (vent_ach/3600._r8) * rho_dair(l) * cpair * (taf(l) - t_building(l)) &
+                               - ht_roof(l) * (vent_ach/3600._r8) * rho_dair(l) * hvap * (qaf(l) - q_building(l)) &
                                )
        end if
     end do

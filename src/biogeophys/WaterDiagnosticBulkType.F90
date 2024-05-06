@@ -154,7 +154,7 @@ contains
     real(r8)          , intent(in) :: h2osno_input_col(bounds%begc:)  ! Initial total snow water (mm H2O)
 
 
-    call this%Init(bounds, info, vars)
+    call this%Init(bounds, info, vars, is_prog_buildtemp)
 
     call this%InitBulkAllocate(bounds) 
 
@@ -813,7 +813,7 @@ contains
     !------------------------------------------------------------------------
 
 
-    call this%Restart(bounds, ncid, flag=flag)
+    call this%Restart(bounds, ncid, flag=flag, is_prog_buildtemp)
 
     if(use_luna)then
        call restartvar(ncid=ncid, flag=flag, &
