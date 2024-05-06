@@ -44,7 +44,7 @@ contains
 ! !INTERFACE:
   subroutine BuildingTemperature (bounds, num_urbanl, filter_urbanl, num_nolakec, &
                                   filter_nolakec, tk, urbanparams_inst, temperature_inst, &
-                                  energyflux_inst, waterdiagnostic_inst, urbantv_inst) ! Cathy [dev.02]
+                                  energyflux_inst, urbantv_inst, waterdiagnostic_inst) ! Cathy [dev.02]
 !
 ! !DESCRIPTION:
 ! Solve for t_building, inner surface temperatures of roof, sunw, shdw, and floor temperature
@@ -227,9 +227,9 @@ contains
     type(urbanparams_type), intent(in)    :: urbanparams_inst ! urban parameters
     type(temperature_type), intent(inout) :: temperature_inst ! temperature variables
     type(energyflux_type) , intent(inout) :: energyflux_inst  ! energy flux variables
+    type(urbantv_type)    , intent(in)    :: urbantv_inst     ! urban time varying variables
     ! Cathy [dev.02]
     type(waterdiagnostic_type), intent(inout) :: waterdiagnostic_inst ! water diagnostic variables
-    type(urbantv_type)    , intent(in)    :: urbantv_inst     ! urban time varying variables
 !
 ! !LOCAL VARIABLES:
     integer, parameter :: neq = 5          ! number of equation/unknowns

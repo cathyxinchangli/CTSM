@@ -541,7 +541,10 @@ contains
       if ( IsProgBuildTemp() )then
          call BuildingTemperature(bounds, num_urbanl, filter_urbanl, num_nolakec, filter_nolakec, &
                                   tk(bounds%begc:bounds%endc, :), urbanparams_inst,               &
-                                  temperature_inst, energyflux_inst, urbantv_inst)
+                                  temperature_inst, energyflux_inst, urbantv_inst, waterdiagnosticbulk_inst) 
+                                  ! Cathy [dev.04]: using waterdiagnosticbulk_inst instead of waterdiagnostic_inst
+                                  ! because it seems vars in WaterDiagnosticType can be accessed through the bulk
+                                  ! type, and it has already been defined in this subroutine.
       end if
 
       do fc = 1,num_nolakec

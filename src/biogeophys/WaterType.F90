@@ -752,7 +752,7 @@ contains
 
     SHR_ASSERT_ALL_FL((ubound(watsat_col, 1) == bounds%endc), sourcefile, __LINE__)
 
-    call this%waterfluxbulk_inst%restartBulk (bounds, ncid, flag=flag, is_prog_buildtemp=IsProgBuildTemp())
+    call this%waterfluxbulk_inst%restartBulk (bounds, ncid, flag=flag)
 
     call this%waterstatebulk_inst%restartBulk (bounds, ncid, flag=flag, &
          watsat_col=watsat_col(bounds%begc:bounds%endc,:), &
