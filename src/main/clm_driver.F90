@@ -849,9 +849,7 @@ contains
             filter(nc)%num_nolakec , filter(nc)%nolakec,                                       &
             atm2lnd_inst, urbanparams_inst, canopystate_inst, water_inst%waterstatebulk_inst, &
             water_inst%waterdiagnosticbulk_inst, water_inst%waterfluxbulk_inst, &
-            solarabs_inst, soilstate_inst, energyflux_inst,  temperature_inst, urbantv_inst, &
-            ! Cathy [dev.04]
-            water_inst%waterdiagnostic_inst)
+            solarabs_inst, soilstate_inst, energyflux_inst,  temperature_inst, urbantv_inst)
 
        ! The following is called immediately after SoilTemperature so that melted ice is
        ! converted back to solid ice as soon as possible

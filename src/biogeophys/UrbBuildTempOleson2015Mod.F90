@@ -16,8 +16,8 @@ module UrbBuildTempOleson2015Mod
   use UrbanTimeVarType  , only : urbantv_type  
   use EnergyFluxType    , only : energyflux_type
   use TemperatureType   , only : temperature_type
-  ! Cathy [dev.02]
-  use WaterDiagnosticType, only : waterdiagnostic_type
+  ! Cathy [dev.02] [dev.04]
+  use WaterDiagnosticBulkType, only : waterdiagnosticbulk_type
   use LandunitType      , only : lun                
   use ColumnType        , only : col                
   !
@@ -44,7 +44,7 @@ contains
 ! !INTERFACE:
   subroutine BuildingTemperature (bounds, num_urbanl, filter_urbanl, num_nolakec, &
                                   filter_nolakec, tk, urbanparams_inst, temperature_inst, &
-                                  energyflux_inst, urbantv_inst, waterdiagnostic_inst) ! Cathy [dev.02]
+                                  energyflux_inst, urbantv_inst, waterdiagnosticbulk_inst) ! Cathy [dev.02] [dev.04]
 !
 ! !DESCRIPTION:
 ! Solve for t_building, inner surface temperatures of roof, sunw, shdw, and floor temperature
@@ -228,8 +228,8 @@ contains
     type(temperature_type), intent(inout) :: temperature_inst ! temperature variables
     type(energyflux_type) , intent(inout) :: energyflux_inst  ! energy flux variables
     type(urbantv_type)    , intent(in)    :: urbantv_inst     ! urban time varying variables
-    ! Cathy [dev.02]
-    type(waterdiagnostic_type), intent(inout) :: waterdiagnostic_inst ! water diagnostic variables
+    ! Cathy [dev.02] [dev.04]
+    type(waterdiagnosticbulk_type), intent(inout) :: waterdiagnosticbulk_inst ! water diagnostic variables
 !
 ! !LOCAL VARIABLES:
     integer, parameter :: neq = 5          ! number of equation/unknowns
@@ -340,9 +340,10 @@ contains
     t_building_max    => urbantv_inst%t_building_max       , & ! Input:  [real(r8) (:)]  maximum internal building air temperature (K)
     t_building_min    => urbanparams_inst%t_building_min   , & ! Input:  [real(r8) (:)]  minimum internal building air temperature (K)
 
-    ! Cathy [dev.02]
-    qaf               => waterdiagnostic_inst%qaf_lun      , & ! Input:  [real(r8) (:)]  urban canopy air specific humidity (kg/kg)
-    q_building        => waterdiagnostic_inst%q_building_lun,& ! InOut:  [real(r8) (:)]  internal building air specific humidity (kg/kg)
+    ! Cathy [dev.02] [dev.04]
+    ! trying to change to waterdiagnosticbulk_inst following how qaf was used in UrbanFluxesMod.F90
+    qaf               => waterdiagnosticbulk_inst%qaf_lun      , & ! Input:  [real(r8) (:)]  urban canopy air specific humidity (kg/kg)
+    q_building        => waterdiagnosticbulk_inst%q_building_lun,& ! InOut:  [real(r8) (:)]  internal building air specific humidity (kg/kg)
 
     eflx_building     => energyflux_inst%eflx_building_lun , & ! Output:  [real(r8) (:)]  building heat flux from change in interior building air temperature (W/m**2)
     eflx_urban_ac     => energyflux_inst%eflx_urban_ac_lun , & ! Output:  [real(r8) (:)]  urban air conditioning flux (W/m**2)

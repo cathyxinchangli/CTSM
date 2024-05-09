@@ -21,7 +21,7 @@ module SoilTemperatureMod
   use WaterStateBulkType      , only : waterstatebulk_type
   use WaterDiagnosticBulkType , only : waterdiagnosticbulk_type
   ! Cathy [dev.04]
-  use WaterDiagnosticType     , only : waterdiagnostic_type
+  ! use WaterDiagnosticType     , only : waterdiagnostic_type
   use SolarAbsorbedType       , only : solarabs_type
   use SoilStateType           , only : soilstate_type
   use EnergyFluxType          , only : energyflux_type
@@ -93,7 +93,7 @@ contains
   subroutine SoilTemperature(bounds, num_urbanl, filter_urbanl, num_urbanc, filter_urbanc, &
        num_nolakep, filter_nolakep, num_nolakec, filter_nolakec, &
        atm2lnd_inst, urbanparams_inst, canopystate_inst, waterstatebulk_inst, waterdiagnosticbulk_inst, waterfluxbulk_inst,&
-       solarabs_inst, soilstate_inst, energyflux_inst,  temperature_inst, urbantv_inst, waterdiagnostic_inst) ! Cathy [dev.04]
+       solarabs_inst, soilstate_inst, energyflux_inst,  temperature_inst, urbantv_inst) ! Cathy [dev.04]
     !
     ! !DESCRIPTION:
     ! Snow and soil temperatures including phase change
@@ -146,8 +146,8 @@ contains
     type(solarabs_type)            ,  intent(inout) :: solarabs_inst
     type(energyflux_type)          ,  intent(inout) :: energyflux_inst
     type(temperature_type)         ,  intent(inout) :: temperature_inst
-    ! Cathy [dev.04]
-    type(waterdiagnostic_type)     , intent(inout)  :: waterdiagnostic_inst ! water diagnostic variables
+    ! Cathy [dev.04] 
+    ! type(waterdiagnostic_type)     , intent(inout)  :: waterdiagnostic_inst ! water diagnostic variables
     !
     ! !LOCAL VARIABLES:
     integer  :: j,c,l,g                                                  ! indices
@@ -545,7 +545,7 @@ contains
       if ( IsProgBuildTemp() )then
          call BuildingTemperature(bounds, num_urbanl, filter_urbanl, num_nolakec, filter_nolakec, &
                                   tk(bounds%begc:bounds%endc, :), urbanparams_inst,               &
-                                  temperature_inst, energyflux_inst, urbantv_inst, waterdiagnostic_inst) ! Cathy [dev.04]
+                                  temperature_inst, energyflux_inst, urbantv_inst, waterdiagnosticbulk_inst) ! Cathy [dev.04]
       end if
 
       do fc = 1,num_nolakec
