@@ -19,7 +19,9 @@ module UrbBuildTempOleson2015Mod
   ! Cathy [dev.02] [dev.04]
   use WaterDiagnosticBulkType, only : waterdiagnosticbulk_type
   use LandunitType      , only : lun                
-  use ColumnType        , only : col                
+  use ColumnType        , only : col
+  ! Cathy [dev.06]
+  use atm2lndType       , only : atm2lnd_type                
   !
   ! !PUBLIC TYPES:
   implicit none
@@ -44,7 +46,8 @@ contains
 ! !INTERFACE:
   subroutine BuildingTemperature (bounds, num_urbanl, filter_urbanl, num_nolakec, &
                                   filter_nolakec, tk, urbanparams_inst, temperature_inst, &
-                                  energyflux_inst, urbantv_inst, waterdiagnosticbulk_inst) ! Cathy [dev.02] [dev.04]
+                                  energyflux_inst, urbantv_inst, waterdiagnosticbulk_inst, &
+                                  atm2lnd_inst) ! Cathy [dev.02] [dev.04] [dev.06]
 !
 ! !DESCRIPTION:
 ! Solve for t_building, inner surface temperatures of roof, sunw, shdw, and floor temperature
@@ -209,12 +212,16 @@ contains
                                  em_roof_int, em_floor_int, em_sunw_int, em_shdw_int, &
                                  dz_floor, dens_floor, cp_floor, vent_ach, &
                                  ! Cathy [dev.02]
-                                 q_building_max, hvap
+                                 ! q_building_max, hvap
+                                 ! Cathy [dev.06]
+                                 rh_building_max, hvap
     use column_varcon   , only : icol_roof, icol_sunwall, icol_shadewall
     use clm_varctl      , only : iulog
     use abortutils      , only : endrun
     use clm_varpar      , only : nlevurb, nlevsno, nlevmaxurbgrnd
     use UrbanParamsType , only : urban_hac, urban_hac_off, urban_hac_on, urban_wasteheat_on, urban_explicit_ac
+    ! Cathy [dev.06]
+    use QSatMod         , only : QSat
 !
 ! !ARGUMENTS:
     implicit none
@@ -230,6 +237,8 @@ contains
     type(urbantv_type)    , intent(in)    :: urbantv_inst     ! urban time varying variables
     ! Cathy [dev.02] [dev.04]
     type(waterdiagnosticbulk_type), intent(inout) :: waterdiagnosticbulk_inst ! water diagnostic variables
+    ! Cathy [dev.06]
+    type(atm2lnd_type)    , intent(in)    :: atm2lnd_inst
 !
 ! !LOCAL VARIABLES:
     integer, parameter :: neq = 5          ! number of equation/unknowns
@@ -310,6 +319,10 @@ contains
                                            ! on exit, if info = 0, the n-by-nrhs solution matrix x
     integer  :: info                       ! exit information for LAPACK routine dgesv
     integer  :: ipiv(neq)                  ! the pivot indices that define the permutation matrix P
+    ! Cathy [dev.06]
+    real(r8) :: q_building_max             ! maximum internal building air specific humidity determined from rh_building_max (kg/kg)
+    real(r8) :: qsat_building_max          ! maximum internal building air saturated specific humidity/mixing ratio used to determing q_building_max from rh_building_max (kg/kg)
+    real(r8) :: qsat_building              ! internal building air saturated specific humidity/mixing ratio used to calculate rh_building (kg/kg)
 !EOP
 !-----------------------------------------------------------------------
 
@@ -344,6 +357,9 @@ contains
     ! trying to change to waterdiagnosticbulk_inst following how qaf was used in UrbanFluxesMod.F90
     qaf               => waterdiagnosticbulk_inst%qaf_lun      , & ! Input:  [real(r8) (:)]  urban canopy air specific humidity (kg/kg)
     q_building        => waterdiagnosticbulk_inst%q_building_lun,& ! InOut:  [real(r8) (:)]  internal building air specific humidity (kg/kg)
+    ! Cathy [dev.06]
+    rh_building       => waterdiagnosticbulk_inst%rh_building_lun,& ! InOut: [real(r8) (:)]  internal building air relative humidity (%)
+    forc_pbot         => atm2lnd_inst%forc_pbot_not_downscaled_grc,& ! Input:[real(r8) (:)]  atmospheric pressure (Pa)
 
     eflx_building     => energyflux_inst%eflx_building_lun , & ! Output:  [real(r8) (:)]  building heat flux from change in interior building air temperature (W/m**2)
     eflx_urban_ac     => energyflux_inst%eflx_urban_ac_lun , & ! Output:  [real(r8) (:)]  urban air conditioning flux (W/m**2)
@@ -951,13 +967,19 @@ contains
 
     do fl = 1,num_urbanl
        l = filter_urbanl(fl)
+       ! Cathy [dev.06]
+       g = lun%gridcell(l)
        if (urbpoi(l)) then
           if (trim(urban_hac) == urban_hac_on .or. trim(urban_hac) == urban_wasteheat_on) then
             t_building_bef_hac(l) = t_building(l)
             ! Cathy [dev.03]
             q_building_bef_hac(l) = q_building(l)
 !           rho_dair(l) = pstd / (rair*t_building(l))
-            
+            ! Cathy [dev.06]
+            ! Calculate q setpoint from RH setpoint
+            call QSat(t_building_bef_hac(l), forc_pbot(g), qsat_building_max)
+            q_building_max = rh_building_max*qsat_building_max
+
             ! Sensible heat
             if (t_building_bef_hac(l) > t_building_max(l)) then
               if (urban_explicit_ac) then   ! use explicit ac adoption rate parameterization scheme:
@@ -991,7 +1013,7 @@ contains
             ! Humidification process for urban heating is not implemented.
             if (q_building_bef_hac(l) > q_building_max) then
               if (urban_explicit_ac) then   ! use explicit ac adoption rate parameterization scheme:
-                ! Here, q_building_max is the AC saturation humidity setpoint
+                ! Here, q_building_max is the AC humidity setpoint under saturated adoption
                 eflx_urban_ac_sat_lat(l) = wtlunit_roof(l) * abs( &
                                            (ht_roof(l) * rho_dair(l) * hvap / dtime) * q_building_max &
                                            - (ht_roof(l) * rho_dair(l) * hvap / dtime) * q_building_bef_hac(l) &
@@ -1013,6 +1035,10 @@ contains
                              (ht_roof(l) * rho_dair(l)*cpair/dtime) * (t_building(l) - t_building_bef(l)) &
                              + (ht_roof(l) * rho_dair(l)*hvap/dtime) * (q_building(l) - q_building_bef(l)) &
                              )
+          ! Cathy [dev.06]
+          ! Calculate relative humidity based on specific humidity
+          call QSat(t_building(l), forc_pbot(g), qsat_building)
+          rh_building(l) = min(100._r8, q_building(l) / qsat_building * 100._r8)
        end if
     end do
 

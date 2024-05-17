@@ -65,6 +65,8 @@ module WaterDiagnosticBulkType
      real(r8), pointer :: rh_ref2m_patch         (:)   ! patch 2 m height surface relative humidity (%)
      real(r8), pointer :: rh_ref2m_r_patch       (:)   ! patch 2 m height surface relative humidity - rural (%)
      real(r8), pointer :: rh_ref2m_u_patch       (:)   ! patch 2 m height surface relative humidity - urban (%)
+     ! Cathy [dev.06]
+     real(r8), pointer :: rh_building_lun        (:)   ! lun internal building air relative humidity (%) 
      real(r8), pointer :: rh_af_patch            (:)   ! patch fractional humidity of canopy air (dimensionless) ! private
      real(r8), pointer :: rh10_af_patch          (:)   ! 10-day mean patch fractional humidity of canopy air (dimensionless)
      real(r8), pointer :: dqgdT_col              (:)   ! col d(qg)/dT
@@ -221,6 +223,8 @@ contains
     allocate(this%rh_ref2m_patch         (begp:endp))                     ; this%rh_ref2m_patch         (:)   = nan
     allocate(this%rh_ref2m_u_patch       (begp:endp))                     ; this%rh_ref2m_u_patch       (:)   = nan
     allocate(this%rh_ref2m_r_patch       (begp:endp))                     ; this%rh_ref2m_r_patch       (:)   = nan
+    ! Cathy [dev.06]
+    allocate(this%rh_building_lun        (begl:endl))                     ; this%rh_building_lun        (:)   = nan
     allocate(this%rh_af_patch            (begp:endp))                     ; this%rh_af_patch            (:)   = nan
     allocate(this%rh10_af_patch          (begp:endp))                     ; this%rh10_af_patch          (:)   = spval
 
@@ -358,6 +362,14 @@ contains
          avgflag='A', &
          long_name=this%info%lname('Urban 2m relative humidity'), &
          ptr_patch=this%rh_ref2m_u_patch, set_nourb=spval, default='inactive')
+
+    this%rh_building_lun(begl:endl) = spval
+    call hist_addfld1d ( &
+         fname=this%info%fname('RHBUILD'), &
+         units='%',  &
+         avgflag='A', &
+         long_name=this%info%lname('Internal urban building air relative humidity'), &
+         ptr_lunit=this%rh_building_lun, set_nourb=spval, default='inactive')
 
     this%rh_af_patch(begp:endp) = spval
     call hist_addfld1d ( &
