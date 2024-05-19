@@ -242,7 +242,9 @@ contains
 !
 ! !LOCAL VARIABLES:
     integer, parameter :: neq = 5          ! number of equation/unknowns
-    integer  :: fc,fl,c,l                  ! indices
+    ! Cathy [dev.07]
+    ! integer  :: fc,fl,c,l                  ! indices
+    integer  :: fc,fl,c,l,g                ! indices
     real(r8) :: dtime                      ! land model time step (s)
     real(r8) :: building_hwr(bounds%begl:bounds%endl)      ! building height to building width ratio (-)
     real(r8) :: t_roof_inner_bef(bounds%begl:bounds%endl)  ! roof inside surface temperature at previous time step (K)              
