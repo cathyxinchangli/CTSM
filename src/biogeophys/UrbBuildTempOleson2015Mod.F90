@@ -977,10 +977,10 @@ contains
             ! Cathy [dev.03]
             q_building_bef_hac(l) = q_building(l)
 !           rho_dair(l) = pstd / (rair*t_building(l))
-            ! Cathy [dev.06]
+            ! Cathy [dev.06] [dev.07]
             ! Calculate q setpoint from RH setpoint
             call QSat(t_building_bef_hac(l), forc_pbot(g), qsat_building_max)
-            q_building_max = rh_building_max*qsat_building_max
+            q_building_max = rh_building_max / 100._r8 * qsat_building_max
 
             ! Sensible heat
             if (t_building_bef_hac(l) > t_building_max(l)) then
