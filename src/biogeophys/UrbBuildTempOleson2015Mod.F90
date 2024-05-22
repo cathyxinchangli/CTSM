@@ -982,14 +982,32 @@ contains
             call QSat(t_building_bef_hac(l), forc_pbot(g), qsat_building_max)
             q_building_max = rh_building_max / 100._r8 * qsat_building_max
 
-            ! Sensible heat
             if (t_building_bef_hac(l) > t_building_max(l)) then
               if (urban_explicit_ac) then   ! use explicit ac adoption rate parameterization scheme:
+                
+                ! Sensible heat
                 ! Here, t_building_max is the AC saturation setpoint
                 eflx_urban_ac_sat(l) = wtlunit_roof(l) * abs( (ht_roof(l) * rho_dair(l) * cpair / dtime) * t_building_max(l) &
                                      - (ht_roof(l) * rho_dair(l) * cpair / dtime) * t_building_bef_hac(l) )
                 t_building(l) = t_building_max(l) + ( 1._r8 - p_ac(l) ) * eflx_urban_ac_sat(l) &
                               * dtime / (ht_roof(l) * rho_dair(l) * cpair * wtlunit_roof(l))
+                ! eflx_urban_ac(l) = p_ac(l) * eflx_urban_ac_sat(l)
+                
+                ! Cathy [dev.09]
+                ! Latent heat
+                if (q_building_bef_hac(l) > q_building_max) then
+                  ! the latent heat removed from internal building air is released to urban canyon as sensible heat.
+                  ! Humidification process for urban heating is not implemented.
+                  ! Here, q_building_max is the AC humidity setpoint under saturated adoption
+                  eflx_urban_ac_sat_lat(l) = wtlunit_roof(l) * abs( &
+                                             (ht_roof(l) * rho_dair(l) * hvap / dtime) * q_building_max &
+                                             - (ht_roof(l) * rho_dair(l) * hvap / dtime) * q_building_bef_hac(l) &
+                                             )
+                  eflx_urban_ac_sat(l) = eflx_urban_ac_sat(l) + eflx_urban_ac_sat_lat(l)
+                  q_building(l) = q_building_max + ( 1._r8 - p_ac(l) ) * eflx_urban_ac_sat_lat(l) &
+                              * dtime / (ht_roof(l) * rho_dair(l) * hvap * wtlunit_roof(l))
+                
+                end if
                 eflx_urban_ac(l) = p_ac(l) * eflx_urban_ac_sat(l)
               else
                 t_building(l) = t_building_max(l)
@@ -1003,7 +1021,7 @@ contains
                                    - (ht_roof(l) * rho_dair(l) * cpair / dtime) * t_building_bef_hac(l) )
             else
               ! Cathy [dev.03]: need this because dehumidification below may reference it
-              eflx_urban_ac_sat(l) = 0._r8
+              ! eflx_urban_ac_sat(l) = 0._r8
               eflx_urban_ac(l) = 0._r8
               eflx_urban_heat(l) = 0._r8
             end if
@@ -1013,19 +1031,19 @@ contains
             ! Dehumidification process modifies eflx_urban_ac, and is only implemented for urban_explicit_ac = .true.;
             ! the latent heat removed from internal building air is released to urban canyon as sensible heat.
             ! Humidification process for urban heating is not implemented.
-            if (q_building_bef_hac(l) > q_building_max) then
-              if (urban_explicit_ac) then   ! use explicit ac adoption rate parameterization scheme:
-                ! Here, q_building_max is the AC humidity setpoint under saturated adoption
-                eflx_urban_ac_sat_lat(l) = wtlunit_roof(l) * abs( &
-                                           (ht_roof(l) * rho_dair(l) * hvap / dtime) * q_building_max &
-                                           - (ht_roof(l) * rho_dair(l) * hvap / dtime) * q_building_bef_hac(l) &
-                                           )
-                eflx_urban_ac_sat(l) = eflx_urban_ac_sat(l) + eflx_urban_ac_sat_lat(l)
-                q_building(l) = q_building_max + ( 1._r8 - p_ac(l) ) * eflx_urban_ac_sat_lat(l) &
-                              * dtime / (ht_roof(l) * rho_dair(l) * hvap * wtlunit_roof(l))
-                eflx_urban_ac(l) = p_ac(l) * eflx_urban_ac_sat(l)
-              end if
-            end if
+            ! if (q_building_bef_hac(l) > q_building_max) then
+            !   if (urban_explicit_ac) then   ! use explicit ac adoption rate parameterization scheme:
+            !     ! Here, q_building_max is the AC humidity setpoint under saturated adoption
+            !     eflx_urban_ac_sat_lat(l) = wtlunit_roof(l) * abs( &
+            !                                (ht_roof(l) * rho_dair(l) * hvap / dtime) * q_building_max &
+            !                                - (ht_roof(l) * rho_dair(l) * hvap / dtime) * q_building_bef_hac(l) &
+            !                                )
+            !     eflx_urban_ac_sat(l) = eflx_urban_ac_sat(l) + eflx_urban_ac_sat_lat(l)
+            !     q_building(l) = q_building_max + ( 1._r8 - p_ac(l) ) * eflx_urban_ac_sat_lat(l) &
+            !                   * dtime / (ht_roof(l) * rho_dair(l) * hvap * wtlunit_roof(l))
+            !     eflx_urban_ac(l) = p_ac(l) * eflx_urban_ac_sat(l)
+            !   end if
+            ! end if
 
           else
             eflx_urban_ac(l) = 0._r8
