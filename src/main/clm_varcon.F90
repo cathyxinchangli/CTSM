@@ -13,7 +13,9 @@ module clm_varcon
                            SHR_CONST_RHOICE,SHR_CONST_TKFRZ,SHR_CONST_REARTH, &
                            SHR_CONST_PDB, SHR_CONST_PI, SHR_CONST_CDAY,       &
                            SHR_CONST_RGAS, SHR_CONST_PSTD,                    &
-                           SHR_CONST_MWDAIR, SHR_CONST_MWWV, SHR_CONST_CPFW
+                           SHR_CONST_MWDAIR, SHR_CONST_MWWV, SHR_CONST_CPFW   &
+                           ! Cathy [dev.11]
+                           SHR_CONST_CPWV
   use clm_varpar   , only: numrad, nlevgrnd, nlevlak, nlevdecomp_full
   use clm_varpar   , only: ngases
   use clm_varpar   , only: nlayer
@@ -56,6 +58,8 @@ module clm_varcon
   real(r8), public :: cpliq  = SHR_CONST_CPFW                       ! Specific heat of water [J/kg-K]
   real(r8), public :: cpice  = SHR_CONST_CPICE                      ! Specific heat of ice [J/kg-K]
   real(r8), public :: cpair  = SHR_CONST_CPDAIR                     ! specific heat of dry air [J/kg/K]
+  ! Cathy [dev.11]
+  real(r8), public :: cpwvap = SHR_CONST_CPWV                       ! specific heat of water vapor [J/kg/K]
   real(r8), public :: hvap   = SHR_CONST_LATVAP                     ! Latent heat of evap for water [J/kg]
   real(r8), public :: hsub   = SHR_CONST_LATSUB                     ! Latent heat of sublimation    [J/kg]
   real(r8), public :: hfus   = SHR_CONST_LATICE                     ! Latent heat of fusion for ice [J/kg]
