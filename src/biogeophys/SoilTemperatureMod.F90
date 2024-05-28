@@ -546,7 +546,7 @@ contains
          call BuildingTemperature(bounds, num_urbanl, filter_urbanl, num_nolakec, filter_nolakec, &
                                   tk(bounds%begc:bounds%endc, :), urbanparams_inst,               &
                                   temperature_inst, energyflux_inst, urbantv_inst,                &
-                                  waterdiagnosticbulk_inst, atm2lnd_inst) ! Cathy [dev.04] [dev.06]
+                                  waterdiagnosticbulk_inst) ! Cathy [dev.12], atm2lnd_inst) ! Cathy [dev.04] [dev.06]
       end if
 
       do fc = 1,num_nolakec
