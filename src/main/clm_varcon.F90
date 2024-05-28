@@ -13,7 +13,7 @@ module clm_varcon
                            SHR_CONST_RHOICE,SHR_CONST_TKFRZ,SHR_CONST_REARTH, &
                            SHR_CONST_PDB, SHR_CONST_PI, SHR_CONST_CDAY,       &
                            SHR_CONST_RGAS, SHR_CONST_PSTD,                    &
-                           SHR_CONST_MWDAIR, SHR_CONST_MWWV, SHR_CONST_CPFW   &
+                           SHR_CONST_MWDAIR, SHR_CONST_MWWV, SHR_CONST_CPFW,  &
                            ! Cathy [dev.11]
                            SHR_CONST_CPWV
   use clm_varpar   , only: numrad, nlevgrnd, nlevlak, nlevdecomp_full
