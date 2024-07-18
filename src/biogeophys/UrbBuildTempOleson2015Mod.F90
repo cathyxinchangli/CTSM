@@ -387,6 +387,8 @@ contains
     ! 5. Calculate building height to building width ratio
     do fl = 1,num_urbanl
        l = filter_urbanl(fl)
+       ! Cathy [dev.13]
+       g = lun%gridcell(l)
        if (urbpoi(l)) then
          t_roof_inner_bef(l)  = t_roof_inner(l)
          t_sunw_inner_bef(l)  = t_sunw_inner(l)
@@ -420,12 +422,13 @@ contains
          ! Cathy [dev.11]
          ! Density of dry air at standard pressure and t_building (kg m-3)
          ! rho_dair(l) = pstd / (rair*t_building_bef(l))
+         ! Cathy [dev.13] update all pressure to forc_pbot below
          ! Saturated vapor pressure at t_building (Pa)
-         call QSat(t_building_bef(l), pstd, qsat_building, es = esat_building)
+         call QSat(t_building_bef(l), forc_pbot(g), qsat_building, es = esat_building)
          ! Partial pressure of water vapor (Pa)
          p_vapor = min(1._r8, q_building_bef(l) / qsat_building ) * esat_building
-         ! Density of HUMID air at standard pressure and t_building (kg m-3)
-         rho_dair(l) = ( pstd - p_vapor ) / ( rair * t_building_bef(l) ) + p_vapor / ( rwat * t_building_bef(l))
+         ! Density of HUMID air at bottom layer atmos. forcing pressure and t_building (kg m-3)
+         rho_dair(l) = ( forc_pbot(g) - p_vapor ) / ( rair * t_building_bef(l) ) + p_vapor / ( rwat * t_building_bef(l))
          ! Specific heat capacity of HUMID air (J/kg/K)
          cp_hair(l) = cpair + cpwvap * q_building_bef(l)
          ! Building height to building width ratio
