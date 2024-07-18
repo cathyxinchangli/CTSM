@@ -20,8 +20,8 @@ module UrbBuildTempOleson2015Mod
   use WaterDiagnosticBulkType, only : waterdiagnosticbulk_type
   use LandunitType      , only : lun                
   use ColumnType        , only : col
-  ! Cathy [dev.06] [dev.12]
-  ! use atm2lndType       , only : atm2lnd_type                
+  ! Cathy [dev.06]
+  use atm2lndType       , only : atm2lnd_type                
   !
   ! !PUBLIC TYPES:
   implicit none
@@ -46,7 +46,8 @@ contains
 ! !INTERFACE:
   subroutine BuildingTemperature (bounds, num_urbanl, filter_urbanl, num_nolakec, &
                                   filter_nolakec, tk, urbanparams_inst, temperature_inst, &
-                                  energyflux_inst, urbantv_inst, waterdiagnosticbulk_inst) ! Cathy [dev.12], & atm2lnd_inst) ! Cathy [dev.02] [dev.04] [dev.06]
+                                  energyflux_inst, urbantv_inst, waterdiagnosticbulk_inst, &
+                                  atm2lnd_inst) ! Cathy [dev.02] [dev.04] [dev.06]
 !
 ! !DESCRIPTION:
 ! Solve for t_building, inner surface temperatures of roof, sunw, shdw, and floor temperature
@@ -236,14 +237,14 @@ contains
     type(urbantv_type)    , intent(in)    :: urbantv_inst     ! urban time varying variables
     ! Cathy [dev.02] [dev.04]
     type(waterdiagnosticbulk_type), intent(inout) :: waterdiagnosticbulk_inst ! water diagnostic variables
-    ! Cathy [dev.06] [dev.12]
-    ! type(atm2lnd_type)    , intent(in)    :: atm2lnd_inst
+    ! Cathy [dev.06]
+    type(atm2lnd_type)    , intent(in)    :: atm2lnd_inst
 !
 ! !LOCAL VARIABLES:
     integer, parameter :: neq = 5          ! number of equation/unknowns
-    ! Cathy [dev.07] [dev.12]--return to original
-    integer  :: fc,fl,c,l                  ! indices
-    ! integer  :: fc,fl,c,l,g                ! indices
+    ! Cathy [dev.07]
+    ! integer  :: fc,fl,c,l                  ! indices
+    integer  :: fc,fl,c,l,g                ! indices
     real(r8) :: dtime                      ! land model time step (s)
     real(r8) :: building_hwr(bounds%begl:bounds%endl)      ! building height to building width ratio (-)
     real(r8) :: t_roof_inner_bef(bounds%begl:bounds%endl)  ! roof inside surface temperature at previous time step (K)              
@@ -363,9 +364,9 @@ contains
     ! trying to change to waterdiagnosticbulk_inst following how qaf was used in UrbanFluxesMod.F90
     qaf               => waterdiagnosticbulk_inst%qaf_lun      , & ! Input:  [real(r8) (:)]  urban canopy air specific humidity (kg/kg)
     q_building        => waterdiagnosticbulk_inst%q_building_lun,& ! InOut:  [real(r8) (:)]  internal building air specific humidity (kg/kg)
-    ! Cathy [dev.06] [dev.12]
+    ! Cathy [dev.06]
     rh_building       => waterdiagnosticbulk_inst%rh_building_lun,& ! InOut: [real(r8) (:)]  internal building air relative humidity (%)
-    ! forc_pbot         => atm2lnd_inst%forc_pbot_not_downscaled_grc,& ! Input:[real(r8) (:)]  atmospheric pressure (Pa)
+    forc_pbot         => atm2lnd_inst%forc_pbot_not_downscaled_grc,& ! Input:[real(r8) (:)]  atmospheric pressure (Pa)
 
     eflx_building     => energyflux_inst%eflx_building_lun , & ! Output:  [real(r8) (:)]  building heat flux from change in interior building air temperature (W/m**2)
     eflx_urban_ac     => energyflux_inst%eflx_urban_ac_lun , & ! Output:  [real(r8) (:)]  urban air conditioning flux (W/m**2)
@@ -982,18 +983,17 @@ contains
 
     do fl = 1,num_urbanl
        l = filter_urbanl(fl)
-       ! Cathy [dev.06] [dev.12]
-       ! g = lun%gridcell(l)
+       ! Cathy [dev.06]
+       g = lun%gridcell(l)
        if (urbpoi(l)) then
           if (trim(urban_hac) == urban_hac_on .or. trim(urban_hac) == urban_wasteheat_on) then
             t_building_bef_hac(l) = t_building(l)
             ! Cathy [dev.03]
             q_building_bef_hac(l) = q_building(l)
 !           rho_dair(l) = pstd / (rair*t_building(l))
-            ! Cathy [dev.06] [dev.07] [dev.12]
+            ! Cathy [dev.06] [dev.07]
             ! Calculate q setpoint from RH setpoint
-            ! call QSat(t_building_bef_hac(l), forc_pbot(g), qsat_building_max)
-            call QSat(t_building_bef_hac(l), pstd, qsat_building_max)
+            call QSat(t_building_bef_hac(l), forc_pbot(g), qsat_building_max)
             q_building_max = rh_building_max / 100._r8 * qsat_building_max
 
             if (t_building_bef_hac(l) > t_building_max(l)) then
@@ -1069,10 +1069,9 @@ contains
                              (ht_roof(l) * rho_dair(l)*cp_hair(l)/dtime) * (t_building(l) - t_building_bef(l)) &
                              + (ht_roof(l) * rho_dair(l)*hvap/dtime) * (q_building(l) - q_building_bef(l)) &
                              )
-          ! Cathy [dev.06] [dev.12]
+          ! Cathy [dev.06]
           ! Calculate relative humidity based on specific humidity
-          ! call QSat(t_building(l), forc_pbot(g), qsat_building)
-          call QSat(t_building(l), pstd, qsat_building)
+          call QSat(t_building(l), forc_pbot(g), qsat_building)
           rh_building(l) = min(100._r8, q_building(l) / qsat_building * 100._r8)
        end if
     end do
