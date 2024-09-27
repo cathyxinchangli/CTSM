@@ -71,6 +71,8 @@ module EnergyFluxType
      real(r8), pointer :: eflx_heat_from_ac_lun   (:)   ! lun sensible heat flux to be put back into canyon due to removal by AC (W/m**2)
      real(r8), pointer :: eflx_building_lun       (:)   ! lun building heat flux from change in interior building air temperature (W/m**2)
      real(r8), pointer :: eflx_urban_ac_lun       (:)   ! lun urban air conditioning flux (W/m**2)
+     ! Cathy [dev.14]
+     real(r8), pointer :: eflx_urban_ac_sen_lun   (:)   ! lun sensible heat component of air conditioning flux (W/m**2)
      real(r8), pointer :: eflx_urban_heat_lun     (:)   ! lun urban heating flux (W/m**2)
 
      ! Derivatives of energy fluxes
@@ -234,6 +236,8 @@ contains
     allocate( this%eflx_heat_from_ac_lun   (begl:endl))             ; this%eflx_heat_from_ac_lun   (:)   = nan
     allocate( this%eflx_building_lun       (begl:endl))             ; this%eflx_building_lun       (:)   = nan
     allocate( this%eflx_urban_ac_lun       (begl:endl))             ; this%eflx_urban_ac_lun       (:)   = nan
+    ! Cathy [dev.14]
+    allocate( this%eflx_urban_ac_sen_lun   (begl:endl))             ; this%eflx_urban_ac_sen_lun   (:)   = nan
     allocate( this%eflx_urban_heat_lun     (begl:endl))             ; this%eflx_urban_heat_lun     (:)   = nan
     allocate( this%eflx_traffic_lun        (begl:endl))             ; this%eflx_traffic_lun        (:)   = nan
     allocate( this%eflx_wasteheat_lun      (begl:endl))             ; this%eflx_wasteheat_lun      (:)   = nan
@@ -589,6 +593,12 @@ contains
             avgflag='A', long_name='urban air conditioning flux', &
             ptr_lunit=this%eflx_urban_ac_lun, set_nourb=0._r8, l2g_scale_type='unity')
 
+       ! Cathy [dev.14]
+       this%eflx_urban_ac_sen_lun(begl:endl) = spval
+       call hist_addfld1d (fname='URBAN_AC_SEN', units='W/m^2',  &
+            avgflag='A', long_name='sensible heat component of urban air conditioning flux', &
+            ptr_lunit=this%eflx_urban_ac_sen_lun, set_nourb=0._r8, l2g_scale_type='unity')
+
        this%eflx_urban_heat_lun(begl:endl) = spval
        call hist_addfld1d (fname='URBAN_HEAT', units='W/m^2',  &
             avgflag='A', long_name='urban heating flux', &
@@ -762,6 +772,8 @@ contains
           if ( is_prog_buildtemp )then
              this%eflx_building_lun(l)   = 0._r8
              this%eflx_urban_ac_lun(l)   = 0._r8
+             ! Cathy [dev.14]
+             this%eflx_urban_ac_sen_lun(l)= 0._r8
              this%eflx_urban_heat_lun(l) = 0._r8
           end if
 
@@ -775,6 +787,8 @@ contains
           if ( is_prog_buildtemp )then
              this%eflx_building_lun(l)   = 0._r8
              this%eflx_urban_ac_lun(l)   = 0._r8
+             ! Cathy [dev.14]
+             this%eflx_urban_ac_sen_lun(l)= 0._r8
              this%eflx_urban_heat_lun(l) = 0._r8
              this%eflx_ventilation_lun(l)= 0._r8
           end if

@@ -370,6 +370,7 @@ contains
 
     eflx_building     => energyflux_inst%eflx_building_lun , & ! Output:  [real(r8) (:)]  building heat flux from change in interior building air temperature (W/m**2)
     eflx_urban_ac     => energyflux_inst%eflx_urban_ac_lun , & ! Output:  [real(r8) (:)]  urban air conditioning flux (W/m**2)
+    eflx_urban_ac_sen => energyflux_inst%eflx_urban_ac_sen_lun,& ! Output: [real(r8) (:)] sensible heat component of urban air conditioning flux (W/m**2)
     eflx_urban_heat   => energyflux_inst%eflx_urban_heat_lun,& ! Output:  [real(r8) (:)]  urban heating flux (W/m**2)
     eflx_ventilation  => energyflux_inst%eflx_ventilation_lun & ! Output: [real(r8) (:)]  sensible heat flux from building ventilation (W/m**2)
     )
@@ -1008,7 +1009,8 @@ contains
                                      - (ht_roof(l) * rho_dair(l) * cp_hair(l) / dtime) * t_building_bef_hac(l) )
                 t_building(l) = t_building_max(l) + ( 1._r8 - p_ac(l) ) * eflx_urban_ac_sat(l) &
                               * dtime / (ht_roof(l) * rho_dair(l) * cp_hair(l) * wtlunit_roof(l))
-                ! eflx_urban_ac(l) = p_ac(l) * eflx_urban_ac_sat(l)
+                ! Cathy [dev.14]
+                eflx_urban_ac_sen(l) = p_ac(l) * eflx_urban_ac_sat(l)
                 
                 ! Cathy [dev.09]
                 ! Latent heat
@@ -1039,6 +1041,8 @@ contains
             else
               ! Cathy [dev.03]: need this because dehumidification below may reference it
               ! eflx_urban_ac_sat(l) = 0._r8
+              ! Cathy [dev.14]
+              eflx_urban_ac_sen(l) = 0._r8
               eflx_urban_ac(l) = 0._r8
               eflx_urban_heat(l) = 0._r8
             end if
@@ -1063,6 +1067,8 @@ contains
             ! end if
 
           else
+            ! Cathy [dev.14]
+            eflx_urban_ac_sen(l) = 0._r8
             eflx_urban_ac(l) = 0._r8
             eflx_urban_heat(l) = 0._r8
           end if
