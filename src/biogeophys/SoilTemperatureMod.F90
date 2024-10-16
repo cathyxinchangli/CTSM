@@ -547,7 +547,7 @@ contains
                                   num_urbanc, filter_urbanc,                                      &
                                   tk(bounds%begc:bounds%endc, :), urbanparams_inst,               &
                                   temperature_inst, energyflux_inst, urbantv_inst,                &
-                                  waterdiagnosticbulk_inst, atm2lnd_inst) ! Cathy [dev.04] [dev.06] [dev.15]
+                                  waterdiagnosticbulk_inst, waterfluxbulk_inst, atm2lnd_inst) ! Cathy [dev.04] [dev.06] [dev.15]
       end if
 
       do fc = 1,num_nolakec
