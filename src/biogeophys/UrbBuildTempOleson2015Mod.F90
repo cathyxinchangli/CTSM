@@ -1101,7 +1101,7 @@ contains
           ! then multiplying 1/(1-wtroad_perv(l)) converts canyon floor area to impervious road area.
           qtot_condensate(l) = ( wtlunit_roof(l) / (1._r8-wtlunit_roof(l)) ) &
                                * ( 1._r8/(1._r8-wtroad_perv(l)) ) &
-                               * max(0, (-q_building(l)+q_building_bef(l))) * ht_roof(l) * rho_dair(l)
+                               * max(0._r8, (-q_building(l)+q_building_bef(l))) * ht_roof(l) * rho_dair(l)
           
           ! Calculate water flux due to dehumidification to be added to impervious road [mm/s].
           ! water flux to other urban columns are set to 0.
