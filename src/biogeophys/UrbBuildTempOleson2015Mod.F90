@@ -355,6 +355,8 @@ contains
     ht_roof           => lun%ht_roof                       , & ! Input:  [real(r8) (:)]  height of urban roof (m) 
     canyon_hwr        => lun%canyon_hwr                    , & ! Input:  [real(r8) (:)]  ratio of building height to street hwidth (-)
     wtlunit_roof      => lun%wtlunit_roof                  , & ! Input:  [real(r8) (:)]  weight of roof with respect to landunit
+    ! Cathy [dev.15]
+    wtroad_perv       => lun%wtroad_perv                   , & ! Input:  [real(r8) (:)]  weight of pervious road column to total road (-)
     urbpoi            => lun%urbpoi                        , & ! Input:  [logical (:)]  true => landunit is an urban point
 
     taf               => temperature_inst%taf_lun          , & ! Input:  [real(r8) (:)]  urban canopy air temperature (K)
