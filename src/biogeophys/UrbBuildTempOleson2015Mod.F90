@@ -18,6 +18,8 @@ module UrbBuildTempOleson2015Mod
   use TemperatureType   , only : temperature_type
   ! Cathy [dev.02] [dev.04]
   use WaterDiagnosticBulkType, only : waterdiagnosticbulk_type
+  ! Cathy [dev.15]
+  use WaterFluxBulkType , only : waterfluxbulk_type
   use LandunitType      , only : lun                
   use ColumnType        , only : col
   ! Cathy [dev.06]
@@ -45,9 +47,10 @@ contains
 !
 ! !INTERFACE:
   subroutine BuildingTemperature (bounds, num_urbanl, filter_urbanl, num_nolakec, &
-                                  filter_nolakec, tk, urbanparams_inst, temperature_inst, &
+                                  filter_nolakec, num_urbanc, filter_urbanc, &
+                                  tk, urbanparams_inst, temperature_inst, &
                                   energyflux_inst, urbantv_inst, waterdiagnosticbulk_inst, &
-                                  atm2lnd_inst) ! Cathy [dev.02] [dev.04] [dev.06]
+                                  waterfluxbulk_inst, atm2lnd_inst) ! Cathy [dev.02] [dev.04] [dev.06] [dev.15]
 !
 ! !DESCRIPTION:
 ! Solve for t_building, inner surface temperatures of roof, sunw, shdw, and floor temperature
@@ -215,7 +218,7 @@ contains
                                  ! q_building_max, hvap
                                  ! Cathy [dev.06] [dev.11]
                                  rh_building_max, hvap, rwat, cpwvap
-    use column_varcon   , only : icol_roof, icol_sunwall, icol_shadewall
+    use column_varcon   , only : icol_roof, icol_sunwall, icol_shadewall, icol_road_imperv ! Cathy [dev.15]
     use clm_varctl      , only : iulog
     use abortutils      , only : endrun
     use clm_varpar      , only : nlevurb, nlevsno, nlevmaxurbgrnd
@@ -228,6 +231,9 @@ contains
     type(bounds_type), intent(in) :: bounds                   ! bounds
     integer , intent(in)  :: num_nolakec                      ! number of column non-lake points in column filter
     integer , intent(in)  :: filter_nolakec(:)                ! column filter for non-lake points
+    ! Cathy [dev.15]
+    integer , intent(in)  :: num_urbanc                       ! number of column urban points in column filter
+    integer , intent(in)  :: filter_urbanc(:)                 ! column filter for urban points
     integer , intent(in)  :: num_urbanl                       ! number of urban landunits in clump
     integer , intent(in)  :: filter_urbanl(:)                 ! urban landunit filter
     real(r8), intent(in)  :: tk(bounds%begc: , -nlevsno+1: )  ! thermal conductivity (W m-1 K-1) [col, j]
@@ -237,6 +243,8 @@ contains
     type(urbantv_type)    , intent(in)    :: urbantv_inst     ! urban time varying variables
     ! Cathy [dev.02] [dev.04]
     type(waterdiagnosticbulk_type), intent(inout) :: waterdiagnosticbulk_inst ! water diagnostic variables
+    ! Cathy [dev.15]
+    type(waterfluxbulk_type), intent(inout) :: waterfluxbulk_inst ! water flux variables
     ! Cathy [dev.06]
     type(atm2lnd_type)    , intent(in)    :: atm2lnd_inst
 !
@@ -330,6 +338,8 @@ contains
     ! Cathy [dev.11]
     real(r8) :: esat_building              ! internal building air saturated vapor pressure used to calculate p_vapor (Pa)
     real(r8) :: p_vapor                    ! internal building air partial pressure of water vapor (Pa)
+    ! Cathy [dev.15]
+    real(r8) :: qtot_condensate(bounds%begc:bounds%endc) ! total condensed water due to dehumidification per impervious road area (kg/m2)
 !EOP
 !-----------------------------------------------------------------------
 
@@ -372,7 +382,10 @@ contains
     eflx_urban_ac     => energyflux_inst%eflx_urban_ac_lun , & ! Output:  [real(r8) (:)]  urban air conditioning flux (W/m**2)
     eflx_urban_ac_sen => energyflux_inst%eflx_urban_ac_sen_lun,& ! Output: [real(r8) (:)] sensible heat component of urban air conditioning flux (W/m**2)
     eflx_urban_heat   => energyflux_inst%eflx_urban_heat_lun,& ! Output:  [real(r8) (:)]  urban heating flux (W/m**2)
-    eflx_ventilation  => energyflux_inst%eflx_ventilation_lun & ! Output: [real(r8) (:)]  sensible heat flux from building ventilation (W/m**2)
+    eflx_ventilation  => energyflux_inst%eflx_ventilation_lun, & ! Output: [real(r8) (:)]  sensible heat flux from building ventilation (W/m**2)
+
+    ! Cathy [dev.15]
+    qflx_condensate_from_ac => waterfluxbulk_inst%qflx_condensate_from_ac_col & ! Output: [real(r8) (:)] condensed water flux due to dehumidification for impervious road area (mm/s)
     )
 
     ! Get step size
@@ -1078,6 +1091,28 @@ contains
                              (ht_roof(l) * rho_dair(l)*cp_hair(l)/dtime) * (t_building(l) - t_building_bef(l)) &
                              + (ht_roof(l) * rho_dair(l)*hvap/dtime) * (q_building(l) - q_building_bef(l)) &
                              )
+          
+          ! Cathy [dev.15]
+          
+          ! Calculate total water condensed by dehumidification, if any [kg/m2 impervious road area].
+          ! Multiplying wtlunit_roof(l) / (1-wtlunit_roof(l)) converts building area to canyon floor area,
+          ! then multiplying 1/(1-wtroad_perv(l)) converts canyon floor area to impervious road area.
+          qtot_condensate(l) = ( wtlunit_roof(l) / (1._r8-wtlunit_roof(l)) ) &
+                               * ( 1._r8/(1._r8-wtroad_perv(l)) ) &
+                               * max(0, (-q_building(l)+q_building_bef(l))) * ht_roof(l) * rho_dair(l)
+          
+          ! Calculate water flux due to dehumidification to be added to impervious road [mm/s].
+          ! water flux to other urban columns are set to 0.
+          do fc = 1, num_urbanc
+             c = filter_urbanc(fc)
+             if (ctype(c) == icol_road_imperv) then
+                qflx_condensate_from_ac(c) = qtot_condensate(l)/dtime
+                write(iulog,*) '############# Cathy [dev.15] calculated qflx_condensate_from_ac: ', qflx_condensate_from_ac(c), '#############'
+             else if (ctype(c) == icol_roof .or. ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall) then
+                qflx_condensate_from_ac(c) = 0._r8
+             end if
+          end do
+
           ! Cathy [dev.06]
           ! Calculate relative humidity based on specific humidity
           call QSat(t_building(l), forc_pbot(g), qsat_building)

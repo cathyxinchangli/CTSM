@@ -50,6 +50,8 @@ module WaterFluxType
      real(r8), pointer :: qflx_evap_tot_col        (:)   ! col col_qflx_evap_soi + col_qflx_evap_veg + qflx_tran_veg
      real(r8), pointer :: qflx_liqevap_from_top_layer_patch(:) ! patch rate of liquid water evaporated from top soil or snow layer (mm H2O/s) [+]
      real(r8), pointer :: qflx_liqevap_from_top_layer_col(:)   ! col rate of liquid water evaporated from top soil or snow layer (mm H2O/s) [+]
+     ! Cathy [dev.15]
+     real(r8), pointer :: qflx_condensate_from_ac_col(:) ! col condensate due to dehumidification from air-conditioning (mm H2O/S) [+]
 
      ! In the snow capping parametrization excess mass above h2osno_max is removed.  A breakdown of mass into liquid 
      ! and solid fluxes is done, these are represented by qflx_snwcp_liq_col and qflx_snwcp_ice_col. 
@@ -269,6 +271,10 @@ contains
     call AllocateVar1d(var = this%qflx_liqevap_from_top_layer_patch, name = 'qflx_liqevap_from_top_layer_patch', &
          container = tracer_vars, &
          bounds = bounds, subgrid_level = subgrid_level_patch)
+    ! Cathy [dev.15]
+    call AllocateVar1d(var = this%qflx_condensate_from_ac_col, name = 'qflx_condensate_from_ac_col', &
+         container = tracer_vars, &
+         bounds = bounds, subgrid_level = subgrid_level_column)
 
     call AllocateVar1d(var = this%qflx_infl_col, name = 'qflx_infl_col', &
          container = tracer_vars, &
