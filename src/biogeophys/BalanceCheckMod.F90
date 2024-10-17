@@ -742,7 +742,7 @@ contains
                + qflx_sfc_irrig_grc(g)  &
                + qflx_glcice_dyn_water_flux_grc(g)  &
                ! Cathy [dev.16]
-               + qflx_condensate_from_ac_grc &
+               + qflx_condensate_from_ac_grc(g) &
                - qflx_evap_tot_grc(g)  &
                - qflx_surf_grc(g)  &
                - qflx_qrgwl_grc(g)  &
