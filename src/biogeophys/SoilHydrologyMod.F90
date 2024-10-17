@@ -555,6 +555,8 @@ contains
           qflx_liqevap_from_top_layer => waterfluxbulk_inst%qflx_liqevap_from_top_layer_col, & ! Input:  [real(r8) (:)   ]  rate of liquid water evaporated from top soil or snow layer (mm H2O/s) [+]    
           qflx_floodc      =>    waterfluxbulk_inst%qflx_floodc_col      , & ! Input:  [real(r8) (:)   ]  column flux of flood water from RTM               
           qflx_sat_excess_surf => waterfluxbulk_inst%qflx_sat_excess_surf_col , & ! Input:  [real(r8) (:)   ]  surface runoff due to saturated surface (mm H2O /s)
+          ! Cathy [dev.15]
+          qflx_condensate_from_ac => waterfluxbulk_inst%qflx_condensate_from_ac_col, & ! Input: [real(r8) (:)   ] condensate from air-conditioning (mm H2O /s)
 
           xs_urban         =>    soilhydrology_inst%xs_urban_col     , & ! Output: [real(r8) (:)   ]  excess soil water above urban ponding limit
 
@@ -597,7 +599,8 @@ contains
               qflx_surf(c) = xs_urban(c)
            end if
            ! send flood water flux to runoff for all urban columns
-           qflx_surf(c) = qflx_surf(c)  + qflx_floodc(c)
+           ! Cathy [dev.15]
+           qflx_surf(c) = qflx_surf(c)  + qflx_floodc(c) + qflx_condensate_from_ac(c)
         else if (col%itype(c) == icol_sunwall .or. col%itype(c) == icol_shadewall) then
            qflx_surf(c) = 0._r8
         end if

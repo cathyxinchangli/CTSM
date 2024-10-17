@@ -1096,14 +1096,12 @@ contains
           
           ! Cathy [dev.15]
           
-          ! Calculate total water condensed by dehumidification, if any [kg/m2 impervious road area].
-          ! Multiplying wtlunit_roof(l) / (1-wtlunit_roof(l)) converts building area to canyon floor area,
-          ! then multiplying 1/(1-wtroad_perv(l)) converts canyon floor area to impervious road area.
-          qtot_condensate(l) = ( wtlunit_roof(l) / (1._r8-wtlunit_roof(l)) ) &
-                               * ( 1._r8/(1._r8-wtroad_perv(l)) ) &
-                               * max(0._r8, (-q_building(l)+q_building_bef(l))) * ht_roof(l) * rho_dair(l)
+          ! Calculate total water condensed by dehumidification, if any [kg/m2 urban land unit area].
+          ! Although all condensed water flux get added to the impervious road column (that goes directly into surface runoff),
+          ! the area it is based on should be consistent with the other fluxes in the runoff term.
+          qtot_condensate(l) = wtlunit_roof(l) * max(0._r8, (-q_building(l)+q_building_bef(l))) * ht_roof(l) * rho_dair(l)
           
-          ! Calculate water flux due to dehumidification to be added to impervious road [mm/s].
+          ! Calculate and assign water flux due to dehumidification to impervious road column [mm/s].
           ! water flux to other urban columns are set to 0.
           do fc = 1, num_urbanc
              c = filter_urbanc(fc)
