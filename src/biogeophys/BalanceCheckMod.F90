@@ -498,6 +498,8 @@ contains
      real(r8) :: qflx_glcice_dyn_water_flux_grc(bounds%begg:bounds%endg)  ! grid cell-level water flux needed for balance check due to glc_dyn_runoff_routing [mm H2O/s] (positive means addition of water to the system)
      real(r8) :: qflx_snwcp_discarded_liq_grc(bounds%begg:bounds%endg)  ! grid cell-level excess liquid h2o due to snow capping, which we simply discard in order to reset the snow pack [mm H2O /s]
      real(r8) :: qflx_snwcp_discarded_ice_grc(bounds%begg:bounds%endg)  ! grid cell-level excess solid h2o due to snow capping, which we simply discard in order to reset the snow pack [mm H2O /s]
+     ! Cathy [dev.16]
+     real(r8) :: qflx_condensate_from_ac_grc(bounds%begg:bounds%endg)  ! grid cell-level condensate from air-conditioning [mm H2O /s]
 
      real(r8) :: errh2o_max_val                         ! Maximum value of error in water conservation error  over all columns [mm H2O]
      real(r8) :: errh2osno_max_val                      ! Maximum value of error in h2osno conservation error over all columns [kg m-2]
@@ -568,6 +570,8 @@ contains
           qflx_sfc_irrig_col      =>    waterflux_inst%qflx_sfc_irrig_col       , & ! Input:  [real(r8) (:)   ]  column level irrigation flux (mm H2O /s)
           qflx_sfc_irrig_grc      =>    waterlnd2atm_inst%qirrig_grc            , & ! Input:  [real(r8) (:)   ]  grid cell-level irrigation flux (mm H20 /s)
           qflx_glcice_dyn_water_flux_col => waterflux_inst%qflx_glcice_dyn_water_flux_col, & ! Input: [real(r8) (:)]  column level water flux needed for balance check due to glc_dyn_runoff_routing (mm H2O/s) (positive means addition of water to the system)
+          ! Cathy [dev.15]
+          qflx_condensate_from_ac_col => waterflux_inst%qflx_condensate_from_ac_col, & ! Input: [real(r8) (:)]  column level condensate water flux from air-conditioning (mm H2O /s)
 
           dhsdt_canopy            =>    energyflux_inst%dhsdt_canopy_patch      , & ! Input:  [real(r8) (:)   ]  change in heat content of canopy (W/m**2) [+ to atm]
           eflx_lwrad_out          =>    energyflux_inst%eflx_lwrad_out_patch    , & ! Input:  [real(r8) (:)   ]  emitted infrared (longwave) radiation (W/m**2)
@@ -642,6 +646,8 @@ contains
                   + qflx_flood_col(c)        &
                   + qflx_sfc_irrig_col(c)    &
                   + qflx_glcice_dyn_water_flux_col(c) &
+                  ! Cathy [dev.16]
+                  + qflx_condensate_from_ac_col(c) &
                   - qflx_evap_tot_col(c)     &
                   - qflx_surf_col(c)         &
                   - qflx_qrgwl_col(c)        &
@@ -722,6 +728,11 @@ contains
          qflx_snwcp_discarded_ice_col(bounds%begc:bounds%endc),  &
          qflx_snwcp_discarded_ice_grc(bounds%begg:bounds%endg),  &
          c2l_scale_type= 'urbanf', l2g_scale_type='unity' )
+       ! Cathy [dev.16]
+       call c2g( bounds,  &
+         qflx_condensate_from_ac_col(bounds%begc:bounds%endc),  &
+         qflx_condensate_from_ac_grc(bounds%begg:bounds%endg),  &
+         c2l_scale_type= 'urbanf', l2g_scale_type='unity' )
 
        do g = bounds%begg, bounds%endg
           errh2o_grc(g) = endwb_grc(g) - begwb_grc(g)  &
@@ -730,6 +741,8 @@ contains
                + forc_flood_grc(g)  &
                + qflx_sfc_irrig_grc(g)  &
                + qflx_glcice_dyn_water_flux_grc(g)  &
+               ! Cathy [dev.16]
+               + qflx_condensate_from_ac_grc &
                - qflx_evap_tot_grc(g)  &
                - qflx_surf_grc(g)  &
                - qflx_qrgwl_grc(g)  &
