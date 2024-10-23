@@ -1106,7 +1106,7 @@ contains
              c = filter_urbanc(fc)
              if (ctype(c) == icol_roof) then
                 qflx_condensate_from_ac(c) = qtot_condensate(l)/dtime
-                write(iulog,*) '############# Cathy [dev.15] calculated qflx_condensate_from_ac: ', qflx_condensate_from_ac(c), '#############'
+                ! write(iulog,*) '############# Cathy [dev.15] calculated qflx_condensate_from_ac: ', qflx_condensate_from_ac(c), '#############'
              else ! if (ctype(c) == icol_road_imperv .or. ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall) then
                 qflx_condensate_from_ac(c) = 0._r8
              end if
