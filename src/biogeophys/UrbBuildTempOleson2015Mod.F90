@@ -339,7 +339,7 @@ contains
     real(r8) :: esat_building              ! internal building air saturated vapor pressure used to calculate p_vapor (Pa)
     real(r8) :: p_vapor                    ! internal building air partial pressure of water vapor (Pa)
     ! Cathy [dev.15]
-    real(r8) :: qtot_condensate(bounds%begc:bounds%endc) ! total condensed water due to dehumidification per impervious road area (kg/m2)
+    real(r8) :: qtot_condensate(bounds%begc:bounds%endc) ! total condensed water due to dehumidification per building area (kg/m2)
 !EOP
 !-----------------------------------------------------------------------
 
@@ -1096,19 +1096,18 @@ contains
           
           ! Cathy [dev.15]
           
-          ! Calculate total water condensed by dehumidification, if any [kg/m2 urban land unit area].
-          ! Although all condensed water flux get added to the impervious road column (that goes directly into surface runoff),
-          ! the area it is based on should be consistent with the other fluxes in the runoff term.
-          qtot_condensate(l) = wtlunit_roof(l) * max(0._r8, (-q_building(l)+q_building_bef(l))) * ht_roof(l) * rho_dair(l)
+          ! Calculate total water condensed by dehumidification, if any [kg/m2 building area].
+          ! Assume all condensed water gets added to the roof column (that goes directly into surface runoff).
+          qtot_condensate(l) = max(0._r8, (-q_building(l)+q_building_bef(l))) * ht_roof(l) * rho_dair(l)
           
-          ! Calculate and assign water flux due to dehumidification to impervious road column [mm/s].
+          ! Calculate and assign water flux due to dehumidification to roof column [mm/s].
           ! water flux to other urban columns are set to 0.
           do fc = 1, num_urbanc
              c = filter_urbanc(fc)
-             if (ctype(c) == icol_road_imperv) then
+             if (ctype(c) == icol_roof) then
                 qflx_condensate_from_ac(c) = qtot_condensate(l)/dtime
                 write(iulog,*) '############# Cathy [dev.15] calculated qflx_condensate_from_ac: ', qflx_condensate_from_ac(c), '#############'
-             else if (ctype(c) == icol_roof .or. ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall) then
+             else ! if (ctype(c) == icol_road_imperv .or. ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall) then
                 qflx_condensate_from_ac(c) = 0._r8
              end if
           end do
