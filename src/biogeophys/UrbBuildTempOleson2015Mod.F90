@@ -339,7 +339,7 @@ contains
     real(r8) :: esat_building              ! internal building air saturated vapor pressure used to calculate p_vapor (Pa)
     real(r8) :: p_vapor                    ! internal building air partial pressure of water vapor (Pa)
     ! Cathy [dev.15]
-    real(r8) :: qtot_condensate(bounds%begc:bounds%endc) ! total condensed water due to dehumidification per building area (kg/m2)
+    real(r8) :: qtot_condensate(bounds%begl:bounds%endl) ! total condensed water due to dehumidification per building area (kg/m2)
 !EOP
 !-----------------------------------------------------------------------
 

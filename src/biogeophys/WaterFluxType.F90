@@ -271,10 +271,10 @@ contains
     call AllocateVar1d(var = this%qflx_liqevap_from_top_layer_patch, name = 'qflx_liqevap_from_top_layer_patch', &
          container = tracer_vars, &
          bounds = bounds, subgrid_level = subgrid_level_patch)
-    ! Cathy [dev.15]
+    ! Cathy [dev.15] [dev.16.1]
     call AllocateVar1d(var = this%qflx_condensate_from_ac_col, name = 'qflx_condensate_from_ac_col', &
          container = tracer_vars, &
-         bounds = bounds, subgrid_level = subgrid_level_column)
+         bounds = bounds, subgrid_level = subgrid_level_column, ival = 0.0_r8)
 
     call AllocateVar1d(var = this%qflx_infl_col, name = 'qflx_infl_col', &
          container = tracer_vars, &

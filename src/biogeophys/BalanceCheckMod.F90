@@ -780,8 +780,9 @@ contains
              tot_cond_from_col = qflx_condensate_from_ac_col(c) * (grc%area(g)*1.e6_r8*lun%wtgcell(l)*lun%wtlunit_roof(l)) ! grid area * lun frac * roof frac
              tot_cond_from_grc = qflx_condensate_from_ac_grc(g) * (grc%area(g)*1.e6_r8)
              if (tot_cond_from_col > 0._r8 .or. tot_cond_from_grc > 0._r8) then
-                write(iulog,*) 'Cathy [dev.16.1] at ', nstep, ' from column:   ', tot_cond_from_col
-                write(iulog,*) 'Cathy [dev.16.1] at ', nstep, ' from gridcell: ', tot_cond_from_grc
+                write(iulog,*) 'Cathy [dev.16.1] at grid = ',g, 'nstep = ',nstep, &
+                               '  from col: ', tot_cond_from_col, &
+                               '  from grc: ', tot_cond_from_grc
              end if
           end if
        end do
