@@ -512,8 +512,8 @@ contains
      real(r8), parameter :: energy_warning_thresh    = 1.e-7_r8                       ! Warning threshhold for error in errsol, errsol, errseb, errlonv
      real(r8), parameter :: error_thresh             = 1.e-5_r8                       ! Error threshhold for conservation error
      ! ################################## Cathy [dev.16.1] local vars for error check begins ##################################
-     real(r8), :: tot_cond_from_col                     ! total condensate from AC mass flow rate calculated from column-level var [kg/s]
-     real(r8), :: tot_cond_from_grc                     ! total condensate from AC mass flow rate calculated from grid-cell-level var [kg/s]
+     real(r8) :: tot_cond_from_col                      ! total condensate from AC mass flow rate calculated from column-level var [kg/s]
+     real(r8) :: tot_cond_from_grc                      ! total condensate from AC mass flow rate calculated from grid-cell-level var [kg/s]
      ! ################################## Cathy [dev.16.1] local vars for error check ends ##################################
 
      !-----------------------------------------------------------------------
@@ -770,6 +770,7 @@ contains
        ! Below, total condensate mass flow in kg/s will be calculated based on both the column-level var and the grid-cell var.
        ! They should match if our code in assigning condensate flux to roof column was correct and the c2g aggregation 
        ! is done correctly.
+
        do c = bounds%begc,bounds%endc
           g = col%gridcell(c)
           l = col%landunit(c)       
@@ -781,6 +782,7 @@ contains
              if (tot_cond_from_col > 0._r8 .or. tot_cond_from_grc > 0._r8) then
                 write(iulog,*) 'Cathy [dev.16.1] at ', nstep, ' from column:   ', tot_cond_from_col
                 write(iulog,*) 'Cathy [dev.16.1] at ', nstep, ' from gridcell: ', tot_cond_from_grc
+             end if
           end if
        end do
        ! ################################## Cathy [dev.16.1]: error check for qflx_condensate_from_ac ends ##################################
