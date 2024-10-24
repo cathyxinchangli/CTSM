@@ -194,7 +194,7 @@ module clm_varcon
   ! Cathy [dev.02]
   ! real(r8), public :: q_building_max = 0.013_r8         ! maximum internal building air specific humidity (kg/kg)
   ! Cathy [dev.06]
-  real(r8), public :: rh_building_max = 60._r8          ! maximum internal building air relative humidity (%)
+  real(r8), public :: rh_building_max = 65._r8          ! maximum internal building air relative humidity (%)
 
   real(r8), public :: wasteheat_limit = 100._r8         ! limit on wasteheat (W/m2)
 
