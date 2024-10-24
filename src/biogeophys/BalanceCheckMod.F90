@@ -512,8 +512,8 @@ contains
      real(r8), parameter :: energy_warning_thresh    = 1.e-7_r8                       ! Warning threshhold for error in errsol, errsol, errseb, errlonv
      real(r8), parameter :: error_thresh             = 1.e-5_r8                       ! Error threshhold for conservation error
      ! ################################## Cathy [dev.16.1] local vars for error check begins ##################################
-     real(r8) :: tot_cond_from_col                      ! total condensate from AC mass flow rate calculated from column-level var [kg/s]
-     real(r8) :: tot_cond_from_grc                      ! total condensate from AC mass flow rate calculated from grid-cell-level var [kg/s]
+     ! real(r8) :: tot_cond_from_col                      ! total condensate from AC mass flow rate calculated from column-level var [kg/s]
+     ! real(r8) :: tot_cond_from_grc                      ! total condensate from AC mass flow rate calculated from grid-cell-level var [kg/s]
      ! ################################## Cathy [dev.16.1] local vars for error check ends ##################################
 
      !-----------------------------------------------------------------------
@@ -771,21 +771,21 @@ contains
        ! They should match if our code in assigning condensate flux to roof column was correct and the c2g aggregation 
        ! is done correctly.
 
-       do c = bounds%begc,bounds%endc
-          g = col%gridcell(c)
-          l = col%landunit(c)       
-
-          if (col%itype(c) == icol_roof) then
-             ! tot_cond_from_col = qflx_condensate_from_ac_col(c) * (grc%area(g)*1.e6_r8*col%wtgcell(c)) ! kg/s = kg/m2/s * m2
-             tot_cond_from_col = qflx_condensate_from_ac_col(c) * (grc%area(g)*1.e6_r8*lun%wtgcell(l)*lun%wtlunit_roof(l)) ! grid area * lun frac * roof frac
-             tot_cond_from_grc = qflx_condensate_from_ac_grc(g) * (grc%area(g)*1.e6_r8)
-             if (tot_cond_from_col > 0._r8 .or. tot_cond_from_grc > 0._r8) then
-                write(iulog,*) 'Cathy [dev.16.1] at grid = ',g, 'nstep = ',nstep, &
-                               '  from col: ', tot_cond_from_col, &
-                               '  from grc: ', tot_cond_from_grc
-             end if
-          end if
-       end do
+       ! do c = bounds%begc,bounds%endc
+       !    g = col%gridcell(c)
+       !    l = col%landunit(c)       
+       ! 
+       !    if (col%itype(c) == icol_roof) then
+       !       ! tot_cond_from_col = qflx_condensate_from_ac_col(c) * (grc%area(g)*1.e6_r8*col%wtgcell(c)) ! kg/s = kg/m2/s * m2
+       !       tot_cond_from_col = qflx_condensate_from_ac_col(c) * (grc%area(g)*1.e6_r8*lun%wtgcell(l)*lun%wtlunit_roof(l)) ! grid area * lun frac * roof frac
+       !       tot_cond_from_grc = qflx_condensate_from_ac_grc(g) * (grc%area(g)*1.e6_r8)
+       !       if (tot_cond_from_col > 0._r8 .or. tot_cond_from_grc > 0._r8) then
+       !          write(iulog,*) 'Cathy [dev.16.1] at grid = ',g, 'nstep = ',nstep, &
+       !                         '  from col: ', tot_cond_from_col, &
+       !                         '  from grc: ', tot_cond_from_grc
+       !       end if
+       !    end if
+       ! end do
        ! ################################## Cathy [dev.16.1]: error check for qflx_condensate_from_ac ends ##################################
 
        errh2o_max_val = maxval(abs(errh2o_grc(bounds%begg:bounds%endg)))
