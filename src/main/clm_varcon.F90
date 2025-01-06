@@ -174,7 +174,9 @@ module clm_varcon
   !------------------------------------------------------------------
   ! Urban building temperature constants
   !------------------------------------------------------------------
-  real(r8), public :: ht_wasteheat_factor = 0.2_r8   ! wasteheat factor for urban heating (-)
+  ! Cathy [ashp.dev.01]
+  ! real(r8), public :: ht_wasteheat_factor = 0.2_r8   ! wasteheat factor for urban heating (-)
+  real(r8), public :: ht_wasteheat_factor = -0.4_r8   ! wasteheat factor for urban heating (-)
   real(r8), public :: ac_wasteheat_factor = 0.6_r8   ! wasteheat factor for urban air conditioning (-)
   real(r8), public :: em_roof_int  = 0.9_r8          ! emissivity of interior surface of roof (Bueno et al. 2012, GMD)
   real(r8), public :: em_sunw_int  = 0.9_r8          ! emissivity of interior surface of sunwall (Bueno et al. 2012, GMD)
