@@ -131,6 +131,8 @@ contains
     use column_varcon   , only : icol_roof, icol_sunwall, icol_shadewall
     use column_varcon   , only : icol_road_perv, icol_road_imperv, icol_road_perv
     use landunit_varcon , only : isturb_MIN
+    ! Cathy [ashp.dev.02]
+    use histFileMod     , only : hist_addfld1d
     !
     ! !ARGUMENTS:
     class(urbanparams_type) :: this
