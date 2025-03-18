@@ -372,7 +372,7 @@ contains
     t_building_max    => urbantv_inst%t_building_max       , & ! Input:  [real(r8) (:)]  maximum internal building air temperature (K)
     t_building_min    => urbanparams_inst%t_building_min   , & ! Input:  [real(r8) (:)]  minimum internal building air temperature (K)
     ! Cathy [ashp.dev.02]
-    cop_ht            => urbanparams_inst%cop_ht           , $ ! InOut:  [real(r8) (:)] air-source heat pump heating Coefficient of Performance (-)
+    cop_ht            => urbanparams_inst%cop_ht           , & ! InOut:  [real(r8) (:)] air-source heat pump heating Coefficient of Performance (-)
 
     ! Cathy [dev.02] [dev.04]
     ! trying to change to waterdiagnosticbulk_inst following how qaf was used in UrbanFluxesMod.F90
