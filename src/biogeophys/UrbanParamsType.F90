@@ -90,6 +90,8 @@ module UrbanParamsType
 
      real(r8), pointer     :: t_building_min      (:)   ! lun minimum internal building air temperature (K)
      real(r8), pointer     :: eflx_traffic_factor (:)   ! lun multiplicative traffic factor for sensible heat flux from urban traffic (-)
+     ! Cathy [ashp.dev.02] 
+     real(r8), pointer     :: cop_ht              (:)   ! lun air-source heat pump Coefficient of Performance for heating (-)
    contains
 
      procedure, public :: Init 
@@ -190,6 +192,7 @@ contains
     allocate(this%alb_wall_dir        (begl:endl,numrad))   ; this%alb_wall_dir        (:,:) = nan    
     allocate(this%alb_wall_dif        (begl:endl,numrad))   ; this%alb_wall_dif        (:,:) = nan
     allocate(this%eflx_traffic_factor (begl:endl))          ; this%eflx_traffic_factor (:)   = nan
+    allocate(this%cop_ht              (begl:endl))          ; this%cop_ht              (:)   = nan
 
     ! Initialize time constant urban variables
 
@@ -360,6 +363,13 @@ contains
 
     ! Note that we don't deallocate memory for urbinp datatype (call UrbanInput with
     ! mode='finalize') because the arrays are needed for dynamic urban landunits.
+
+   ! Cathy [ashp.dev.02]
+   ! Setup fields that can be output on history files
+   this%cop_ht(begl:endl) = spval
+   call hist_addfld1d (fname='COP_HT', units='-',  &
+        avgflag='A', long_name='Coefficient of Performance for air-source heat pump in heating mode', &
+        ptr_lunit=this%cop_ht, set_nourb=spval, l2g_scale_type='unity')
 
   end subroutine Init
 
