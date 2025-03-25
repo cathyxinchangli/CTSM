@@ -199,7 +199,7 @@ contains
     ! Cathy [ashp.dev.02]
     allocate(this%cop_ht              (begl:endl))          ; this%cop_ht              (:)   = nan
     ! Cathy [ashp.dev.03]
-    allocate(this%ashp_wasteheat_factor (begl:endl))        : this%ashp_wasteheat_factor (:) = nan
+    allocate(this%ashp_wasteheat_factor (begl:endl))        ; this%ashp_wasteheat_factor (:) = nan
 
     ! Initialize time constant urban variables
 
