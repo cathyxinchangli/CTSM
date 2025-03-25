@@ -112,7 +112,8 @@ contains
     integer                , intent(in)    :: num_urbanp         ! number of urban patches in clump
     integer                , intent(in)    :: filter_urbanp(:)   ! urban pft filter
     type(atm2lnd_type)     , intent(in)    :: atm2lnd_inst
-    type(urbanparams_type) , intent(in)    :: urbanparams_inst
+    ! Cathy [ashp.dev.03]
+    type(urbanparams_type) , intent(inout) :: urbanparams_inst
     type(soilstate_type)   , intent(inout) :: soilstate_inst
     type(temperature_type) , intent(inout) :: temperature_inst
     type(waterstatebulk_type)  , intent(inout) :: waterstatebulk_inst
@@ -235,6 +236,9 @@ contains
 
          wind_hgt_canyon     =>   urbanparams_inst%wind_hgt_canyon          , & ! Input:  [real(r8) (:)   ]  height above road at which wind in canyon is to be computed (m)
          eflx_traffic_factor =>   urbanparams_inst%eflx_traffic_factor      , & ! Input:  [real(r8) (:)   ]  multiplicative urban traffic factor for sensible heat flux
+         ! Cathy [ashp.dev.03]
+         cop_ht              =>   urbanparams_inst%cop_ht                   , & ! Input:  [real(r8) (:)   ]  air-source heat pump Coefficient of Performance for heating (-)
+         ashp_wasteheat_factor => urbanparams_inst%ashp_wasteheat_factor    , & ! Output: [real(r8) (:)   ]  wasteheat factor for urban heating using air-source heat pump (-) 
 
          rootr_road_perv     =>   soilstate_inst%rootr_road_perv_col        , & ! Input:  [real(r8) (:,:) ]  effective fraction of roots in each soil layer for urban pervious road
          soilalpha_u         =>   soilstate_inst%soilalpha_u_col            , & ! Input:  [real(r8) (:)   ]  Urban factor that reduces ground saturated specific humidity (-)
@@ -619,7 +623,7 @@ contains
 
          call wasteheat( bounds, num_urbanl, filter_urbanl, eflx_wasteheat_roof, eflx_wasteheat_sunwall, &
                          eflx_wasteheat_shadewall, eflx_heat_from_ac_roof, eflx_heat_from_ac_sunwall,    &
-                         eflx_heat_from_ac_shadewall, energyflux_inst )
+                         eflx_heat_from_ac_shadewall, energyflux_inst, cop_ht, ashp_wasteheat_factor ) ! Cathy [ashp.dev.03]
 
          do fl = 1, num_urbanl
             l = filter_urbanl(fl)
@@ -946,7 +950,7 @@ contains
   ! !INTERFACE:
   subroutine wasteheat( bounds, num_urbanl, filter_urbanl, eflx_wasteheat_roof, eflx_wasteheat_sunwall, &
                         eflx_wasteheat_shadewall, eflx_heat_from_ac_roof, eflx_heat_from_ac_sunwall,    &
-                        eflx_heat_from_ac_shadewall, energyflux_inst )
+                        eflx_heat_from_ac_shadewall, energyflux_inst, cop_ht, ashp_wasteheat_factor ) ! Cathy [ashp.dev.03]
     ! !DESCRIPTION:
     !
     ! Calculate the wasteheat flux from urban heating or air-conditioning.
@@ -968,6 +972,9 @@ contains
     real(r8)            , intent(in)  :: eflx_heat_from_ac_sunwall(bounds%begl:bounds%endl)
     real(r8)            , intent(in)  :: eflx_heat_from_ac_shadewall(bounds%begl:bounds%endl)
     type(energyflux_type) , intent(inout)  :: energyflux_inst  ! data on landunit energy flux
+    ! Cathy [ashp.dev.03]
+    real(r8)            , intent(in)  :: cop_ht(bounds%begl:bounds%endl)
+    real(r8)            , intent(out) :: ashp_wasteheat_factor(bounds%begl:bounds%endl)
 
     ! !LOCAL VARIABLES:
     integer fl, l, g
@@ -996,6 +1003,8 @@ contains
        else if ( IsProgBuildTemp() )then
           ! wasteheat from heating/cooling
           if (trim(urban_hac) == urban_wasteheat_on) then
+            ! Cathy [ashp.dev.03] calculate wasteheat factor (assuming Peff of 0.43, same as AC)
+            ashp_wasteheat_factor(l) = ( 1._r8/(cop_ht(l)*0.43_r8) ) - 1
             eflx_wasteheat(l) = ac_wasteheat_factor * eflx_urban_ac(l) + &
                                 ht_wasteheat_factor * eflx_urban_heat(l)
           else

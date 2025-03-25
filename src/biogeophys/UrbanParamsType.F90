@@ -92,6 +92,8 @@ module UrbanParamsType
      real(r8), pointer     :: eflx_traffic_factor (:)   ! lun multiplicative traffic factor for sensible heat flux from urban traffic (-)
      ! Cathy [ashp.dev.02] 
      real(r8), pointer     :: cop_ht              (:)   ! lun air-source heat pump Coefficient of Performance for heating (-)
+     ! Cathy [ashp.dev.03]
+     real(r8), pointer     :: ashp_wasteheat_factor (:) ! lun wasteheat factor for urban heating using air-source heat pump (-)
    contains
 
      procedure, public :: Init 
@@ -194,7 +196,10 @@ contains
     allocate(this%alb_wall_dir        (begl:endl,numrad))   ; this%alb_wall_dir        (:,:) = nan    
     allocate(this%alb_wall_dif        (begl:endl,numrad))   ; this%alb_wall_dif        (:,:) = nan
     allocate(this%eflx_traffic_factor (begl:endl))          ; this%eflx_traffic_factor (:)   = nan
+    ! Cathy [ashp.dev.02]
     allocate(this%cop_ht              (begl:endl))          ; this%cop_ht              (:)   = nan
+    ! Cathy [ashp.dev.03]
+    allocate(this%ashp_wasteheat_factor (begl:endl))        : this%ashp_wasteheat_factor (:) = nan
 
     ! Initialize time constant urban variables
 
@@ -372,6 +377,11 @@ contains
    call hist_addfld1d (fname='COP_HT', units='-',  &
         avgflag='A', long_name='Coefficient of Performance for air-source heat pump in heating mode', &
         ptr_lunit=this%cop_ht, set_nourb=spval, l2g_scale_type='unity')
+   ! Cathy [ashp.dev.03]
+   this%ashp_wasteheat_factor(begl:endl) = spval
+   call hist_addfld1d (fname='ASHP_WSTHT_FACTOR', units='-',  &
+        avgflag='A', long_name='Wasteheat factor for urban heating using air-source heat pump', &
+        ptr_lunit=this%ashp_wasteheat_factor, set_nourb=spval, l2g_scale_type='unity')
 
   end subroutine Init
 
