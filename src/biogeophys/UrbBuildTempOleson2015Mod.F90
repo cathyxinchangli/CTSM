@@ -453,6 +453,12 @@ contains
          building_hwr(l) = canyon_hwr(l)*(1._r8-wtlunit_roof(l))/wtlunit_roof(l)
          ! Cathy [ashp.dev.02] calculate ASHP heating COP under current canyon air temperature, using eq.(9) from Xie et al. (2024)
          cop_ht(l) = 0.07_r8*(taf(l)-273)+3.20_r8
+         ! Cathy [ashp.dev.03.01] restrict COP range so as to wasteheat factor makes sense
+         if (cop_ht(l) < 0.9_r8) then
+            cop_ht(l) = 0.9_r8
+         else if (cop_ht(l) > 4.25_r8) then
+            cop_ht(l) = 4.25_r8
+         end if
        end if
     end do
 
