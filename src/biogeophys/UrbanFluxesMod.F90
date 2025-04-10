@@ -236,9 +236,10 @@ contains
 
          wind_hgt_canyon     =>   urbanparams_inst%wind_hgt_canyon          , & ! Input:  [real(r8) (:)   ]  height above road at which wind in canyon is to be computed (m)
          eflx_traffic_factor =>   urbanparams_inst%eflx_traffic_factor      , & ! Input:  [real(r8) (:)   ]  multiplicative urban traffic factor for sensible heat flux
-         ! Cathy [ashp.dev.03]
+         ! Cathy [ashp.dev.03] 
          cop_ht              =>   urbanparams_inst%cop_ht                   , & ! Input:  [real(r8) (:)   ]  air-source heat pump Coefficient of Performance for heating (-)
-         ashp_wasteheat_factor => urbanparams_inst%ashp_wasteheat_factor    , & ! Output: [real(r8) (:)   ]  wasteheat factor for urban heating using air-source heat pump (-) 
+         ! Cathy [ashp.dev.04]
+         ashp_wasteheat_factor => urbanparams_inst%ashp_wasteheat_factor    , & ! Input:  [real(r8) (:)   ]  wasteheat factor for urban heating using air-source heat pump (-) 
 
          rootr_road_perv     =>   soilstate_inst%rootr_road_perv_col        , & ! Input:  [real(r8) (:,:) ]  effective fraction of roots in each soil layer for urban pervious road
          soilalpha_u         =>   soilstate_inst%soilalpha_u_col            , & ! Input:  [real(r8) (:)   ]  Urban factor that reduces ground saturated specific humidity (-)
@@ -974,7 +975,8 @@ contains
     type(energyflux_type) , intent(inout)  :: energyflux_inst  ! data on landunit energy flux
     ! Cathy [ashp.dev.03]
     real(r8)            , intent(in)  :: cop_ht(bounds%begl:bounds%endl)
-    real(r8)            , intent(out) :: ashp_wasteheat_factor(bounds%begl:bounds%endl)
+    ! Cathy [ashp.dev.04]
+    real(r8)            , intent(in)  :: ashp_wasteheat_factor(bounds%begl:bounds%endl)
 
     ! !LOCAL VARIABLES:
     integer fl, l, g
@@ -1004,7 +1006,7 @@ contains
           ! wasteheat from heating/cooling
           if (trim(urban_hac) == urban_wasteheat_on) then
             ! Cathy [ashp.dev.03] calculate wasteheat factor (assuming Peff of 0.43, same as AC)
-            ashp_wasteheat_factor(l) = ( 1._r8/(cop_ht(l)*0.43_r8) ) - 1
+            ! ashp_wasteheat_factor(l) = ( 1._r8/(cop_ht(l)*0.43_r8) ) - 1 ! Cathy [ashp.dev.04] moved to UrbBuildTempOleson2015Mod
             eflx_wasteheat(l) = ac_wasteheat_factor * eflx_urban_ac(l) + &
                                 ht_wasteheat_factor * eflx_urban_heat(l)
           else

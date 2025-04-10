@@ -372,7 +372,9 @@ contains
     t_building_max    => urbantv_inst%t_building_max       , & ! Input:  [real(r8) (:)]  maximum internal building air temperature (K)
     t_building_min    => urbanparams_inst%t_building_min   , & ! Input:  [real(r8) (:)]  minimum internal building air temperature (K)
     ! Cathy [ashp.dev.02]
-    cop_ht            => urbanparams_inst%cop_ht           , & ! InOut:  [real(r8) (:)] air-source heat pump heating Coefficient of Performance (-)
+    cop_ht            => urbanparams_inst%cop_ht           , & ! Output: [real(r8) (:)]  air-source heat pump heating Coefficient of Performance (-)
+    ! Cathy [ashp.dev.04]
+    ashp_wasteheat_factor => urbanparams_inst%ashp_wasteheat_factor,& ! Output: [real(r8) (:)]  wasteheat factor for urban heating using air-source heat pump (-) 
 
     ! Cathy [dev.02] [dev.04]
     ! trying to change to waterdiagnosticbulk_inst following how qaf was used in UrbanFluxesMod.F90
@@ -453,12 +455,14 @@ contains
          building_hwr(l) = canyon_hwr(l)*(1._r8-wtlunit_roof(l))/wtlunit_roof(l)
          ! Cathy [ashp.dev.02] calculate ASHP heating COP under current canyon air temperature, using eq.(9) from Xie et al. (2024)
          cop_ht(l) = 0.07_r8*(taf(l)-273)+3.20_r8
-         ! Cathy [ashp.dev.03.01] restrict COP range so as to wasteheat factor makes sense
+         ! Cathy [ashp.dev.03.01] restrict COP range so that wasteheat factor makes sense
          if (cop_ht(l) < 0.9_r8) then
             cop_ht(l) = 0.9_r8
          else if (cop_ht(l) > 4.25_r8) then
             cop_ht(l) = 4.25_r8
          end if
+         ! Cathy [ashp.dev.04]
+         ashp_wasteheat_factor(l) = ( 1._r8/(cop_ht(l)*0.43_r8) ) - 1
        end if
     end do
 
