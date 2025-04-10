@@ -1007,8 +1007,11 @@ contains
           if (trim(urban_hac) == urban_wasteheat_on) then
             ! Cathy [ashp.dev.03] calculate wasteheat factor (assuming Peff of 0.43, same as AC)
             ! ashp_wasteheat_factor(l) = ( 1._r8/(cop_ht(l)*0.43_r8) ) - 1 ! Cathy [ashp.dev.04] moved to UrbBuildTempOleson2015Mod
+            ! Cathy [ashp.dev.05] use ashp_wasteheat_factor to replace ht_wasteheat_factor
+            ! eflx_wasteheat(l) = ac_wasteheat_factor * eflx_urban_ac(l) + &
+            !                     ht_wasteheat_factor * eflx_urban_heat(l)
             eflx_wasteheat(l) = ac_wasteheat_factor * eflx_urban_ac(l) + &
-                                ht_wasteheat_factor * eflx_urban_heat(l)
+                                ashp_wasteheat_factor * eflx_urban_heat(l)
           else
             eflx_wasteheat(l) = 0._r8
           end if
