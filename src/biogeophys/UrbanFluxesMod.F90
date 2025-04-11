@@ -1011,7 +1011,7 @@ contains
             ! eflx_wasteheat(l) = ac_wasteheat_factor * eflx_urban_ac(l) + &
             !                     ht_wasteheat_factor * eflx_urban_heat(l)
             eflx_wasteheat(l) = ac_wasteheat_factor * eflx_urban_ac(l) + &
-                                ashp_wasteheat_factor * eflx_urban_heat(l)
+                                ashp_wasteheat_factor(l) * eflx_urban_heat(l)
           else
             eflx_wasteheat(l) = 0._r8
           end if
