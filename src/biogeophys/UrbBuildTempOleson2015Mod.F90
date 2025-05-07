@@ -461,12 +461,13 @@ contains
          ! else if (cop_ht(l) > 4.25_r8) then
          !    cop_ht(l) = 4.25_r8
          ! end if
-         ! Cathy [ashp.dev.06] update COP(T) relationship to one derived from Gibb et al. (2023)
-         if taf(l) < (-25._r8+273._r8) then
+         ! Cathy [ashp.dev.06] update COP(T) relationship to one derived from Gibb et al. (2023),
+         ! and assume COP stays constant outside of temperature range (-25 degC, 15 degC)
+         if (taf(l) < (-25._r8+273._r8)) then
             cop_ht(l) = 0.045_r8*(-25._r8)+2.670_r8
-         else if taf(l) < (-3.067_r8+273._r8) then
+         else if (taf(l) < (-3.067_r8+273._r8)) then
             cop_ht(l) = 0.045_r8*(taf(l)-273._r8)+2.670_r8
-         else if taf(l) < (15._r8+273._r8) then
+         else if (taf(l) < (15._r8+273._r8)) then
             cop_ht(l) = 0.096_r8*(taf(l)-273._r8)+2.825_r8
          else
             cop_ht(l) = 0.096_r8*(15._r8)+2.825_r8
