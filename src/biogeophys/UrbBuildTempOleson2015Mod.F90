@@ -453,13 +453,23 @@ contains
          cp_hair(l) = cpair + cpwvap * q_building_bef(l)
          ! Building height to building width ratio
          building_hwr(l) = canyon_hwr(l)*(1._r8-wtlunit_roof(l))/wtlunit_roof(l)
-         ! Cathy [ashp.dev.02] calculate ASHP heating COP under current canyon air temperature, using eq.(9) from Xie et al. (2024)
-         cop_ht(l) = 0.07_r8*(taf(l)-273)+3.20_r8
-         ! Cathy [ashp.dev.03.01] restrict COP range so that wasteheat factor makes sense
-         if (cop_ht(l) < 0.9_r8) then
-            cop_ht(l) = 0.9_r8
-         else if (cop_ht(l) > 4.25_r8) then
-            cop_ht(l) = 4.25_r8
+         ! ! Cathy [ashp.dev.02] calculate ASHP heating COP under current canyon air temperature, using eq.(9) from Xie et al. (2024)
+         ! cop_ht(l) = 0.07_r8*(taf(l)-273)+3.20_r8
+         ! ! Cathy [ashp.dev.03.01] restrict COP range so that wasteheat factor makes sense
+         ! if (cop_ht(l) < 0.9_r8) then
+         !    cop_ht(l) = 0.9_r8
+         ! else if (cop_ht(l) > 4.25_r8) then
+         !    cop_ht(l) = 4.25_r8
+         ! end if
+         ! Cathy [ashp.dev.06] update COP(T) relationship to one derived from Gibb et al. (2023)
+         if taf(l) < (-25._r8+273._r8) then
+            cop_ht(l) = 0.045_r8*(-25._r8)+2.670_r8
+         else if taf(l) < (-3.067_r8+273._r8) then
+            cop_ht(l) = 0.045_r8*(taf(l)-273._r8)+2.670_r8
+         else if taf(l) < (15._r8+273._r8) then
+            cop_ht(l) = 0.096_r8*(taf(l)-273._r8)+2.825_r8
+         else
+            cop_ht(l) = 0.096_r8*(15._r8)+2.825_r8
          end if
          ! Cathy [ashp.dev.04]
          ashp_wasteheat_factor(l) = ( 1._r8/(cop_ht(l)*0.43_r8) ) - 1
