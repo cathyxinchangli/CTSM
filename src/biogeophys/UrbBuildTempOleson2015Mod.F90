@@ -461,10 +461,10 @@ contains
          ! else if (cop_ht(l) > 4.25_r8) then
          !    cop_ht(l) = 4.25_r8
          ! end if
-         ! Cathy [ashp.dev.06] update COP(T) relationship to one derived from Gibb et al. (2023),
-         ! and assume COP stays constant outside of temperature range (-25 degC, 15 degC)
-         if (taf(l) < (-25._r8+273._r8)) then
-            cop_ht(l) = 0.045_r8*(-25._r8)+2.670_r8
+         ! Cathy [ashp.dev.06, ashp.dev.07] update COP(T) relationship to one derived from Gibb et al. (2023),
+         ! and assume COP stays constant outside of temperature range (-37.1 degC, 15 degC)
+         if (taf(l) < (-37.111_r8+273._r8)) then
+            cop_ht(l) = 0.045_r8*(-37.111_r8)+2.670_r8
          else if (taf(l) < (-3.067_r8+273._r8)) then
             cop_ht(l) = 0.045_r8*(taf(l)-273._r8)+2.670_r8
          else if (taf(l) < (15._r8+273._r8)) then
@@ -472,8 +472,8 @@ contains
          else
             cop_ht(l) = 0.096_r8*(15._r8)+2.825_r8
          end if
-         ! Cathy [ashp.dev.04]
-         ashp_wasteheat_factor(l) = ( 1._r8/(cop_ht(l)*0.43_r8) ) - 1
+         ! Cathy [ashp.dev.04, ashp.dev.07] calculate wasteheat factor. Now default to Peff = 1
+         ashp_wasteheat_factor(l) = ( 1._r8/(cop_ht(l)*1._r8) ) - 1
        end if
     end do
 
